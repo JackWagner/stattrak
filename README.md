@@ -10,6 +10,6 @@ Counter-Strike 2 gameplay aggregator and stat collector
 - ./stattrakServer
     - Back End TypeScript API for parsing game files
         - express
-	- @laihoe/demoparser
-	- morgan
-	- typescript
+	    - @laihoe/demoparser
+	    - morgan
+	    - typescript
