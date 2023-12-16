@@ -6,6 +6,11 @@
 - **morgan** : logging
 - **typescript** : type handling
 
+## How to Run
+
+1. npm i
+2. npm run dev
+
 ## controllers
 
 Logic that directly interacts with @laihoe/demoparser
