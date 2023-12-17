@@ -1,6 +1,5 @@
 from demoparser2 import DemoParser
 import pandas as pd
-import glob
 
 pd.set_option('display.max_rows', 500)
 
