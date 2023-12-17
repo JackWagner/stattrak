@@ -1,0 +1,22 @@
+{
+  "name": "stattrakserver",
+  "version": "1.0.0",
+  "description": "TS REST API for parsing Counter Strike 2 match data",
+  "main": "./source/server.ts",
+  "author": "Jules Marecaux",
+  "license": "ISC",
+  "scripts": {
+    "dev": "nodemon source/server.ts",
+    "build": "rm -rf build/ && prettier --write source/ && tsc"
+  },
+  "dependencies": {
+    "@laihoe/demoparser2": "^0.16.1",
+    "@types/axios": "^0.14.0",
+    "@types/express": "^4.17.21",
+    "@types/morgan": "^1.9.9",
+    "express": "^4.18.2",
+    "morgan": "^1.10.0",
+    "nodemon": "^3.0.2",
+    "ts-node": "^10.9.2"
+  }
+}
