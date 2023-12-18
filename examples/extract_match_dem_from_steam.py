@@ -1,6 +1,13 @@
 import requests
+import regex as re
 from json import load,loads
 
+# boiler plate for Share Code decode
+DICTIONARY        = 'ABCDEFGHJKLMNOPQRSTUVWXYZabcdefhijkmnopqrstuvwxyz23456789';
+DICTIONARY_LENGTH = len(DICTIONARY);
+SHARECODE_PATTERN = r'^CSGO(-?[\w]{5}){5}$';
+
+# Get codes
 steam_conf = open('config/steam_api.json')
 steam_dict = load(steam_conf)
 
@@ -50,7 +57,25 @@ def get_most_recent_game_code(api_key: str, game_auth_code: str, steam_id: str, 
 
     return most_recent_game
 
+def decode_match_share_code(match_share_code: str):
+    """
+        Returns dictionary containing match_id, reservation_id and tv_port 
+        :param match_share_code: match share code to decode
+    """
+
+    if re.search(SHARECODE_PATTERN,match_share_code) is None:
+        raise ValueError(f'Invalid match share code {match_share_code}')
+
+    clean_share_code = match_share_code.replace('CSGO','').replace('-','')
+
+    return {
+         "match_id":match_share_code
+        ,"reservation_id":match_share_code
+        ,"tv_port":match_share_code
+    }
+
 
 my_latest = get_most_recent_game_code(api_key, game_auth_code, steam_id, known_game_code)
+
 print(my_latest)
 
