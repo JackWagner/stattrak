@@ -1,0 +1,7 @@
+{
+	 "database":"stattrak"
+	,"user":"gabenewell"
+	,"host":"stattrak.c9s2eq66sjcf.us-east-1.rds.amazonaws.com"
+	,"password":"Vc009gAJG8tVnvMl9dtN"
+	,"port":"5432"
+}
