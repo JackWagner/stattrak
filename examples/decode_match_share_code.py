@@ -35,11 +35,11 @@ def decode_match_share_code(match_share_code: str):
     for c in reverse_code:
         code_int = code_int * DICTIONARY_LENGTH + DICTIONARY.index(c)
 
-	# Turn to left padded hex, break up into bytes
+    # Turn to left padded hex, break up into bytes
     code_hex   = hex(code_int).lstrip("0x").zfill(36)
     code_bytes = [code_hex[i:i+2] for i in range(0, len(code_hex), 2)] 
 
-	# Slice and re-reverse
+    # Slice and re-reverse
     match_id_bytes       = code_bytes[0:8]
     reservation_id_bytes = code_bytes[8:16]
     tv_port_bytes        = code_bytes[16:18]
