@@ -1,0 +1,63 @@
+// some protobuf to figure out from csgo-protobuf/protobuf/cstrike15_gcmessages.proto
+
+CDataGCCStrike15_v2_MatchInfo = {
+    optional uint64 matchid = 1;
+    optional uint32 matchtime = 2;
+    optional .WatchableMatchInfo watchablematchinfo = 3;
+    optional .CMsgGCCStrike15_v2_MatchmakingServerRoundStats roundstats_legacy = 4;
+    repeated .CMsgGCCStrike15_v2_MatchmakingServerRoundStats roundstatsall = 5;
+}
+
+
+message WatchableMatchInfo {
+    optional uint32 server_ip = 1;
+    optional uint32 tv_port = 2;
+    optional uint32 tv_spectators = 3;
+    optional uint32 tv_time = 4;
+    optional bytes tv_watch_password = 5;
+    optional uint64 cl_decryptdata_key = 6;
+    optional uint64 cl_decryptdata_key_pub = 7;
+    optional uint32 game_type = 8;
+    optional string game_mapgroup = 9;
+    optional string game_map = 10;
+    optional uint64 server_id = 11;
+    optional uint64 match_id = 12;
+    optional uint64 reservation_id = 13;
+}
+
+message CMsgGCCStrike15_v2_MatchmakingServerRoundStats {
+    message DropInfo {
+        optional uint32 account_mvp = 1;
+        }
+    optional uint64 reservationid = 1;
+    optional .CMsgGCCStrike15_v2_MatchmakingGC2ServerReserve reservation = 2;
+    optional string map = 3;
+    optional int32 round = 4;
+    repeated int32 kills = 5;
+    repeated int32 assists = 6;
+    repeated int32 deaths = 7;
+    repeated int32 scores = 8;
+    repeated int32 pings = 9;
+    optional int32 round_result = 10;
+    optional int32 match_result = 11;
+    repeated int32 team_scores = 12;
+    optional .CMsgGCCStrike15_v2_MatchmakingGC2ServerConfirm confirm = 13;
+    optional int32 reservation_stage = 14;
+    optional int32 match_duration = 15;
+    repeated int32 enemy_kills = 16;
+    repeated int32 enemy_headshots = 17;
+    repeated int32 enemy_3ks = 18;
+    repeated int32 enemy_4ks = 19;
+    repeated int32 enemy_5ks = 20;
+    repeated int32 mvps = 21;
+    optional uint32 spectators_count = 22;
+    optional uint32 spectators_count_tv = 23;
+    optional uint32 spectators_count_lnk = 24;
+    repeated int32 enemy_kills_agg = 25;
+    optional .CMsgGCCStrike15_v2_MatchmakingServerRoundStats.DropInfo drop_info = 26;
+    optional bool b_switched_teams = 27;
+    repeated int32 enemy_2ks = 28;
+    repeated int32 player_spawned = 29;
+    repeated int32 team_spawn_count = 30;
+    optional uint32 max_rounds = 31;
+}
