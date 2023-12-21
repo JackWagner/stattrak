@@ -4,8 +4,9 @@ from csgo.sharecode import decode
 from csgo.features.match import Match
 import logging
 
-from json import load, loads
-from sqlalchemy import create_engine
+
+from json       import load, loads
+from sqlalchemy import create_engine, text
 import pandas as pd
 
 steam_user_conf = open('examples/config/steam_user.json','r')
@@ -22,10 +23,10 @@ port     = db_user.get('port')
 
 connection_str = f'postgresql://{user}:{password}@{host}:{port}/{database}'
 engine         = create_engine(connection_str)
-connection_res = None
+con            = None
 
 try:    
-    connection_res = engine.connect()
+    con = engine.connect()
     print(f'Welcome {user}!')
 except Exception as ex:
     print(f'{ex}')
@@ -33,18 +34,22 @@ except Exception as ex:
 
 # Get a user's known game code
 query = "SELECT * FROM users.steam_auth;"
-df = pd.read_sql_query(sql=query,con=connection_res)
+df = pd.read_sql_query(sql=query,con=con)
 print(df)
 
 # Decode the match code and break into constituent parts
-match_decode = decode(df.iloc[0]['known_game_code'])
+steam_id         = int(df.iloc[0]['steam_id'])
+match_share_code = str(df.iloc[0]['known_game_code'])
+match_decode     = decode(match_share_code)
 
 matchid   = match_decode.get('matchid')
 outcomeid = match_decode.get('outcomeid')
 token     = match_decode.get('token')
 
+match_url = ''
+
 #instantiate GameCoordinator
-logging.basicConfig(format='[%(asctime)s] %(levelname)s %(name)s: %(message)s', level=logging.DEBUG)
+#logging.basicConfig(format='[%(asctime)s] %(levelname)s %(name)s: %(message)s', level=logging.DEBUG)
 
 client = SteamClient()
 cs = CSGOClient(client)
@@ -59,24 +64,42 @@ def gc_ready():
     # Use match decode to retrieve info
     cs.request_full_match_info(matchid, outcomeid, token)
     print('Request full match... waiting')
-    response, = cs.wait_event('full_match_info') 
-    print(str(response))
-    print(type(response))
-    print(dir(response))
-    full_match_dict = loads(str(response))
-    print(full_match_dict)
+    response, = cs.wait_event('full_match_info')
+
+    match_stats = response.matches[0]
+    final_round = match_stats.roundstatsall[-1]
+
+    demo_url    = str(final_round.map)
+    print(demo_url)
+
+    sql = text("""
+        INSERT INTO users.matches(steam_id, match_share_code, demo_url)
+        SELECT :steam_id,:match_share_code,:demo_url
+        WHERE 
+        NOT EXISTS (
+            SELECT steam_id, match_share_code
+            FROM users.matches
+            WHERE steam_id         = :steam_id
+              AND match_share_code = :match_share_code
+        );
+    """)
+    insert = con.execute(sql
+                        ,steam_id         = steam_id
+                        ,match_share_code = match_share_code
+                        ,demo_url         = demo_url)
+
     cs.emit("match_info_collected")
     pass
 
 @cs.on('match_info_collected')
 def match_collected():
-    print(str(full_match_info))
-    raise
+    print('Finished')
+    exit()
+    pass
 
 steam_username = steam_user.get('username')
 steam_password = steam_user.get('password')
 
 client.cli_login(username=steam_username, password=steam_password)
 client.run_forever()
-
 
