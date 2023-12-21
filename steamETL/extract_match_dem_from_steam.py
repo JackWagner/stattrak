@@ -3,20 +3,20 @@ from csgo.client import CSGOClient
 from csgo.sharecode import decode
 from csgo.features.match import Match
 import logging
-import pandas  as pd
 
-from db_utils   import connect
+from db_utils   import Connect
 from json       import load, loads
 from sqlalchemy import text
 
 steam_user_conf = open('examples/config/steam_user.json','r')
 steam_user      = load(steam_user_conf)
 
-db = connect()
+# Instantiate a DB connection
+db = Connect()
 
 # Get a user's known game code
-query = "SELECT * FROM users.steam_auth;"
-df = pd.read_sql_query(sql=query,con=db)
+sql = "SELECT * FROM users.steam_auth;"
+df  = db.execute(sql)
 print(df)
 
 # Decode the match code and break into constituent parts
@@ -52,21 +52,27 @@ def gc_ready():
     demo_url    = str(final_round.map)
     print(demo_url)
 
-    sql = text("""
+    sql = f"""
         INSERT INTO users.matches(steam_id, match_share_code, demo_url)
-        SELECT :steam_id,:match_share_code,:demo_url
+        SELECT 
+            %(steam_id)s
+           ,%(match_share_code)s
+           ,%(demo_url)s
         WHERE 
         NOT EXISTS (
             SELECT steam_id, match_share_code
             FROM users.matches
-            WHERE steam_id         = :steam_id
-              AND match_share_code = :match_share_code
-        );
-    """)
-    insert = db.execute(sql
-                       ,steam_id         = steam_id
-                       ,match_share_code = match_share_code
-                       ,demo_url         = demo_url)
+            WHERE steam_id         = %(steam_id)s
+              AND match_share_code = %(match_share_code)s
+        );"""
+    
+    df = db.execute(sql
+                   ,params ={
+                        'steam_id':steam_id
+                       ,'match_share_code':match_share_code
+                       ,'demo_url':demo_url
+                       }
+                   ,returns =False)
 
     cs.emit("match_info_collected")
     pass
@@ -82,4 +88,3 @@ steam_password = steam_user.get('password')
 
 client.cli_login(username=steam_username, password=steam_password)
 client.run_forever()
-
