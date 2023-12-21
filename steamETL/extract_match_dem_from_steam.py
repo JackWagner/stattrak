@@ -3,38 +3,20 @@ from csgo.client import CSGOClient
 from csgo.sharecode import decode
 from csgo.features.match import Match
 import logging
+import pandas  as pd
 
-
+from db_utils   import connect
 from json       import load, loads
-from sqlalchemy import create_engine, text
-import pandas as pd
+from sqlalchemy import text
 
 steam_user_conf = open('examples/config/steam_user.json','r')
 steam_user      = load(steam_user_conf)
 
-db_user_conf = open('examples/config/db_user.json','r')
-db_user      = load(db_user_conf)
-
-database = db_user.get('database')
-user     = db_user.get('user')
-host     = db_user.get('host')
-password = db_user.get('password')
-port     = db_user.get('port')
-
-connection_str = f'postgresql://{user}:{password}@{host}:{port}/{database}'
-engine         = create_engine(connection_str)
-con            = None
-
-try:    
-    con = engine.connect()
-    print(f'Welcome {user}!')
-except Exception as ex:
-    print(f'{ex}')
-    raise
+db = connect()
 
 # Get a user's known game code
 query = "SELECT * FROM users.steam_auth;"
-df = pd.read_sql_query(sql=query,con=con)
+df = pd.read_sql_query(sql=query,con=db)
 print(df)
 
 # Decode the match code and break into constituent parts
@@ -46,10 +28,8 @@ matchid   = match_decode.get('matchid')
 outcomeid = match_decode.get('outcomeid')
 token     = match_decode.get('token')
 
-match_url = ''
-
 #instantiate GameCoordinator
-#logging.basicConfig(format='[%(asctime)s] %(levelname)s %(name)s: %(message)s', level=logging.DEBUG)
+logging.basicConfig(format='[%(asctime)s] %(levelname)s %(name)s: %(message)s', level=logging.DEBUG)
 
 client = SteamClient()
 cs = CSGOClient(client)
@@ -83,10 +63,10 @@ def gc_ready():
               AND match_share_code = :match_share_code
         );
     """)
-    insert = con.execute(sql
-                        ,steam_id         = steam_id
-                        ,match_share_code = match_share_code
-                        ,demo_url         = demo_url)
+    insert = db.execute(sql
+                       ,steam_id         = steam_id
+                       ,match_share_code = match_share_code
+                       ,demo_url         = demo_url)
 
     cs.emit("match_info_collected")
     pass
