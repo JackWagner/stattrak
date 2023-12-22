@@ -52,18 +52,18 @@ def gc_ready():
 
     demo_url    = str(final_round.map)
 
-    sql = f"""
+    sql = """
         INSERT INTO users.matches(steam_id, match_share_code, demo_url)
         SELECT 
-            %(steam_id)s
-           ,%(match_share_code)s
-           ,%(demo_url)s
+            :steam_id
+           ,:match_share_code
+           ,:demo_url
         WHERE 
         NOT EXISTS (
             SELECT steam_id, match_share_code
             FROM users.matches
-            WHERE steam_id         = %(steam_id)s
-              AND match_share_code = %(match_share_code)s
+            WHERE steam_id         = :steam_id
+              AND match_share_code = :match_share_code
         );"""
     
     df = db.execute(sql
