@@ -5,7 +5,7 @@ import pandas as pd
 
 # temporary local user config
 homedir      = os.path.expanduser('~')
-db_user_conf = open(os.path.join(homedir,'/.ssh/db_user.json'),'r')
+db_user_conf = open(os.path.join(homedir,'.ssh/db_user.json'),'r')
 db_user      = load(db_user_conf)
 
 class Connect():
