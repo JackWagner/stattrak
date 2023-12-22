@@ -69,7 +69,7 @@ class Demo():
 
         try:
             with bz2.BZ2File(self.bz2_path) as fr, open(self.demo_path,"wb") as fw:
-                shutil.copyfileobj(fr,fw)
+                shutil.copyfileobj(fr,fw,length=16*1024*1024)
         except Exception as e:
             logger.error(e)
             raise
