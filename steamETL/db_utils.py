@@ -35,9 +35,9 @@ class Connect():
         try:
             with self.connection.connect() as connection:
                 if returns:
-                    df = pd.read_sql_query(sql = sql, con = self.connection, params = params)
+                    df = pd.read_sql_query(sql = text(sql), con = self.connection, params = params)
                     return df
-                connection.execute(sql,params)
+                connection.execute(text(sql),params)
         except Exception as ex:
             print(f'{ex}')
             raise
