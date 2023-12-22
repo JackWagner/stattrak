@@ -8,7 +8,7 @@ from db_utils      import Connect
 from json          import load, loads
 from download_demo import download_demo
 
-homedir = os.path.expanduser('~')
+homedir         = os.path.expanduser('~')
 steam_user_conf = open(os.path.join(homedir,'.ssh/steam_user.json'),'r')
 steam_user      = load(steam_user_conf)
 
@@ -18,7 +18,6 @@ db = Connect()
 # Get a user's known game code
 sql = "SELECT * FROM users.steam_auth;"
 df  = db.execute(sql)
-print(df)
 
 # Decode the match code and break into constituent parts
 steam_id         = int(df.iloc[0]['steam_id'])
@@ -29,9 +28,9 @@ matchid   = match_decode.get('matchid')
 outcomeid = match_decode.get('outcomeid')
 token     = match_decode.get('token')
 
-#instantiate GameCoordinator
 logging.basicConfig(format='[%(asctime)s] %(levelname)s %(name)s: %(message)s', level=logging.DEBUG)
 
+# Instantiate GameCoordinator
 client = SteamClient()
 cs = CSGOClient(client)
 
@@ -41,7 +40,6 @@ def start_csgo():
 
 @cs.on('ready')
 def gc_ready():
-    # send messages to gc
     # Use match decode to retrieve info
     cs.request_full_match_info(matchid, outcomeid, token)
     print('Request full match... waiting')
@@ -88,5 +86,5 @@ def match_collected():
 steam_username = steam_user.get('username')
 steam_password = steam_user.get('password')
 
-client.cli_login(username=steam_username, password=steam_password)
+client.cli_login(steam_username, steam_password)
 client.run_forever()

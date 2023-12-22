@@ -1,12 +1,13 @@
 import wget
 import re
 import os
+import logging as logger
 
 URL_REGEX = r'^http://replay115.valve.net/730/\w{32}.dem.bz2'
 
 def download_demo(url, out_dir):
     if re.match(URL_REGEX,url) is None:
-        print(f'Invalid url {url}')
+        logger.error(f'Invalid url {url}')
         raise
 
     homedir  = os.path.expanduser('~')
@@ -15,7 +16,11 @@ def download_demo(url, out_dir):
     print(f'Downloading to {out_path}')
     
     if os.path.isfile(out_path):
-        print(f'Demo {filename} has already been downloaded')
+        logger.error(f'Demo {filename} has already been downloaded')
         raise
-
-    wget.download(url,out_path)
+    
+    try:
+        wget.download(url,out_path)
+    except Exception as e:
+        logger.error(e)
+        raise
