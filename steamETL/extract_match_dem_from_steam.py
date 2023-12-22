@@ -3,13 +3,13 @@ from csgo.client import CSGOClient
 from csgo.sharecode import decode
 from csgo.features.match import Match
 import logging
-
+import os
 from db_utils      import Connect
 from json          import load, loads
 from download_demo import download_demo
 
-
-steam_user_conf = open('examples/config/steam_user.json','r')
+homedir = os.path.expanduser('~')
+steam_user_conf = open(os.path.join(homedir,'.ssh/steam_user.json'),'r')
 steam_user      = load(steam_user_conf)
 
 # Instantiate a DB connection
