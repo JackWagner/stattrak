@@ -1,7 +1,8 @@
 from sqlalchemy import create_engine, text
 from json       import load, loads
 import os
-import pandas as pd
+import pandas  as pd
+import logging as logger
 
 # temporary local user config
 homedir      = os.path.expanduser('~')
@@ -38,6 +39,6 @@ class Connect():
                     df = pd.read_sql_query(sql = text(sql), con = self.connection, params = params)
                     return df
                 connection.execute(text(sql),params)
-        except Exception as ex:
-            print(f'{ex}')
+        except Exception as e:
+            logger.error(e)
             raise
