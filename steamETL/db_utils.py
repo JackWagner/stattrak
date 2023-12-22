@@ -1,9 +1,11 @@
 from sqlalchemy import create_engine, text
 from json       import load, loads
+import os
 import pandas as pd
 
 # temporary local user config
-db_user_conf = open('examples/config/db_user.json','r')
+homedir      = os.path.expanduser('~')
+db_user_conf = open(os.path.join(homedir,'/.ssh/db_user.json'),'r')
 db_user      = load(db_user_conf)
 
 class Connect():
