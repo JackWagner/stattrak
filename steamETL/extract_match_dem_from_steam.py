@@ -4,9 +4,10 @@ from csgo.sharecode import decode
 from csgo.features.match import Match
 import logging
 
-from db_utils   import Connect
-from json       import load, loads
-from sqlalchemy import text
+from db_utils      import Connect
+from json          import load, loads
+from download_demo import download_demo
+
 
 steam_user_conf = open('examples/config/steam_user.json','r')
 steam_user      = load(steam_user_conf)
@@ -50,7 +51,6 @@ def gc_ready():
     final_round = match_stats.roundstatsall[-1]
 
     demo_url    = str(final_round.map)
-    print(demo_url)
 
     sql = f"""
         INSERT INTO users.matches(steam_id, match_share_code, demo_url)
@@ -73,6 +73,8 @@ def gc_ready():
                        ,'demo_url':demo_url
                        }
                    ,returns =False)
+
+    download_demo(demo_url,'demos/')
 
     cs.emit("match_info_collected")
     pass
