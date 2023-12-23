@@ -100,12 +100,9 @@ class Demo():
             logger.error(f'File from {self.url} has not been downloaded, decompressed and stored in the DB')
             raise
 
-        print(f'bz2 path: {self.bz2_path}')
-        print(f'demo path: {self.demo_path}')
-
         try:
-            subprocess.check_call(f'rm "{self.bz2_path}"', shell=True)
-            subprocess.check_call(f'rm "{self.demo_path}"', shell=True)
+            os.remove(self.bz2_path)
+            os.remove(self.demo_path)
         except subprocess.CalledProcessError as e:
             logger.error(e.returncode)
             raise
