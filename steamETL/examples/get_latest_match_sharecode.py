@@ -1,5 +1,6 @@
 import requests
 from json import load,loads
+from time import sleep
 
 # Get codes
 steam_conf = open('config/steam_api.json')
@@ -41,12 +42,14 @@ def get_latest_match_sharecode(api_key: str, game_auth_code: str, steam_id: str,
 
         try:
             # TO_DO: rate limit retry logic
+            sleep(1.5)
             raw_response = requests.get(f'https://api.steampowered.com/ICSGOPlayers_730/GetNextMatchSharingCode/v1?key={api_key}&steamid={steam_id}&steamidkey={game_auth_code}&knowncode={known_game_code}')
             raw_response.raise_for_status()
         except requests.exceptions.HTTPError as errh:
             raise
 
         response        = loads(raw_response.text)
+        print(str(response))
         known_game_code = response.get('result').get('nextcode')
 
     return most_recent_game
