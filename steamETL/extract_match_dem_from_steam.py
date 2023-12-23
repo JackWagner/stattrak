@@ -2,15 +2,17 @@ from steam.client import SteamClient
 from csgo.client import CSGOClient
 from csgo.sharecode import decode
 from csgo.features.match import Match
+from json          import load, loads
+from db_utils import Connect
+from demo     import Demo
 import logging
 import os
-from db_utils      import Connect
-from json          import load, loads
-from download_demo import download_demo
 
 homedir         = os.path.expanduser('~')
 steam_user_conf = open(os.path.join(homedir,'.ssh/steam_user.json'),'r')
 steam_user      = load(steam_user_conf)
+
+logging.basicConfig(format='[%(asctime)s] %(levelname)s %(name)s: %(message)s', level=logging.DEBUG)
 
 # Instantiate a DB connection
 db = Connect()
@@ -27,8 +29,6 @@ match_decode     = decode(match_share_code)
 matchid   = match_decode.get('matchid')
 outcomeid = match_decode.get('outcomeid')
 token     = match_decode.get('token')
-
-logging.basicConfig(format='[%(asctime)s] %(levelname)s %(name)s: %(message)s', level=logging.DEBUG)
 
 # Instantiate GameCoordinator
 client = SteamClient()
@@ -71,8 +71,10 @@ def gc_ready():
                        ,'demo_url':demo_url
                        }
                    ,returns =False)
-
-    download_demo(demo_url,'demos/')
+    
+    # Download, decompress, parse, store and delete Demo
+    demo = Demo(demo_url)
+    demo.process()
 
     cs.emit("match_info_collected")
     pass
@@ -83,8 +85,9 @@ def match_collected():
     exit()
     pass
 
-steam_username = steam_user.get('username')
-steam_password = steam_user.get('password')
+if __name__ == "__main__":
+    steam_username = steam_user.get('username')
+    steam_password = steam_user.get('password')
 
-client.cli_login(steam_username, steam_password)
-client.run_forever()
+    client.cli_login(steam_username, steam_password)
+    client.run_forever()
