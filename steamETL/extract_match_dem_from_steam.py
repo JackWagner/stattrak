@@ -47,13 +47,14 @@ def get_match_from_queue():
 
     if df.empty:
         cs.emit('wait_for_queue')
-        pass
-
-    cs.emit('dequeue_match',df)
+    else:
+        cs.emit('dequeue_match',df)
+        
     pass
 
 @cs.on('wait_for_queue')
 def wait_for_queue():
+    logger.info('Queue is empty, waiting 10 seconds')
     sleep(10)
     cs.emit('get_match_from_queue')
     pass
@@ -73,8 +74,9 @@ def dequeue_match(df):
         db.execute(sql
                   ,params  = {'queue_id':queue_id}
                   ,returns = False)
-    except:
-        logger.error(f'Failed to dequeue {queue_id}... quitting')
+    except Exception as e:
+        logger.error(e)
+        logger.info(f'Failed to dequeue {queue_id}... quitting')
         exit()
     
     cs.emit('match_code_decode',df)
@@ -87,8 +89,9 @@ def match_code_decode(df):
     logger.info(f'Attempting to decode {match_share_code}')
     try:
         match_decode     = decode(match_share_code)
-    except:
-        logger.error(f'Failed to decode {match_share_code} sending to failed queue')
+    except Exception as e:
+        logger.error(e)
+        logger.info(f'Failed to decode {match_share_code} sending to failed queue')
         cs.emit('send_to_failed_queue',df)
         pass
 
@@ -144,8 +147,9 @@ def match_processing(df, match_decode):
     try:
         demo = Demo(demo_url)
         demo.process()
-    except:
-        logger.error(f'Failed to process {demo_url} sending to failed queue')
+    except Exception as e:
+        logger.error(e)
+        logger.info(f'Failed to process {demo_url} sending to failed queue')
         cs.emit('send_to_failed_queue',df)
         pass
 
