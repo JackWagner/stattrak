@@ -1,5 +1,5 @@
 from sqlalchemy import create_engine, text
-from json       import load, loads
+from json       import load
 import os
 import pandas  as pd
 import logging as logger
@@ -22,7 +22,7 @@ class Connect():
         self.port     = db_user.get('port')
         
         self.connection_str = f'postgresql://{self.user}:{self.password}@{self.host}:{self.port}/{self.database}'
-        self.connection     = create_engine(self.connection_str)
+        self.connection     = create_engine(self.connection_str,future=True)
         print(f'Welcome {self.user}!')
 
     def execute(self, sql:str, params:dict = {}, returns:bool = True):
@@ -39,6 +39,7 @@ class Connect():
                     df = pd.read_sql_query(sql = text(sql), con = self.connection, params = params)
                     return df
                 connection.execute(text(sql),params)
+                connection.commit()
         except Exception as e:
             logger.error(e)
             raise
