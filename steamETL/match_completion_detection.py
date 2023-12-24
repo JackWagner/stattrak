@@ -5,6 +5,8 @@ from db_utils import Connect
 from json import load,loads
 from time import sleep
 
+logger.basicConfig(format='[%(asctime)s] %(levelname)s %(name)s: %(message)s', level=logger.DEBUG)
+
 # Get codes
 homedir         = os.path.expanduser('~')
 steam_conf = open(os.path.join(homedir,'.ssh/steam_api.json'),'r')
@@ -40,6 +42,7 @@ def find_user_latest_match(game_auth_code: str, steam_id: str, match_share_code:
         try:
             # TO_DO: rate limit retry logic
             sleep(1.5)
+            logger.info(f'Requesting API...')
             raw_response = requests.get(f'https://api.steampowered.com/ICSGOPlayers_730/GetNextMatchSharingCode/v1?key={api_key}&steamid={steam_id}&steamidkey={game_auth_code}&knowncode={match_share_code}')
             raw_response.raise_for_status()
         except requests.exceptions.HTTPError as errh:
@@ -62,7 +65,7 @@ def find_user_latest_match(game_auth_code: str, steam_id: str, match_share_code:
             db.execute(sql
                       ,params  = {
                            'steam_id':steam_id
-                          ,'match_share_code':match_share_code
+                          ,'match_share_code':most_recent_game
                           }
                       ,returns = False)
         else:
@@ -85,13 +88,14 @@ def find_user_latest_match(game_auth_code: str, steam_id: str, match_share_code:
                           }
                       ,returns = False)
 
-    return i, match_share_code
+    return i, most_recent_game
 
 def iter_over_users():
     """
     Insert into queue and update latest match table based on SteamWeb API response
     """
 
+    logger.info(f'Get 100 oldest users to check up on..')
     # Get 100 oldest rows, add filter to only online users for streamlined run
     sql = """
     SELECT 
@@ -106,6 +110,7 @@ def iter_over_users():
     df = db.execute(sql)
 
     for user in df.itertuples(index=True, name='Pandas'):
+        logger.info(f'Finding user {user.steam_id} latest match')
         api_calls, res = find_user_latest_match(user.game_auth_code, user.steam_id, user.match_share_code)
         logger.info(f'User {user.steam_id} took {str(api_calls)} Steam Web API requests to find latest match {res}')
     
