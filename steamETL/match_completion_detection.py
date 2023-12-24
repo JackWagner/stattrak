@@ -116,4 +116,6 @@ def iter_over_users():
     
     logger.info('Finished finding and updating for top 100 users')
 
-iter_over_users()
+while True:
+    sleep(360)
+    iter_over_users()
