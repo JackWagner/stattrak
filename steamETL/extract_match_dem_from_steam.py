@@ -122,7 +122,7 @@ def match_processing(df, match_decode):
 
     logger.info('Sending match code and URL to the DB')
     sql = """
-        INSERT INTO users.matches(steam_id, match_share_code, demo_url)
+        INSERT INTO matches.processed(steam_id, match_share_code, demo_url)
         SELECT 
             :steam_id
            ,:match_share_code
@@ -130,14 +130,14 @@ def match_processing(df, match_decode):
         WHERE 
         NOT EXISTS (
             SELECT steam_id, match_share_code
-            FROM users.matches
+            FROM matches.processed
             WHERE steam_id         = :steam_id
               AND match_share_code = :match_share_code
         );"""
     
     db.execute(sql
               ,params ={
-                       'steam_id':steam_id
+                        'steam_id':steam_id
                        ,'match_share_code':match_share_code
                        ,'demo_url':demo_url
                        }
