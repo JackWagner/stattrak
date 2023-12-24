@@ -1,11 +1,13 @@
 import requests
+import os
 import logging as logger
 from db_utils import Connect
 from json import load,loads
 from time import sleep
 
 # Get codes
-steam_conf = open('~/.ssh/steam_api.json')
+homedir         = os.path.expanduser('~')
+steam_conf = open(os.path.join(homedir,'.ssh/steam_api.json'),'r')
 steam_dict = load(steam_conf)
 
 # Internal to our Org
