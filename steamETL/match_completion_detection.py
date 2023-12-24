@@ -56,7 +56,7 @@ def find_user_latest_match(game_auth_code: str, steam_id: str, match_share_code:
 
             sql = """
                 UPDATE users.latest_match_auth
-                SET update_ts = current_timestamp, match_share_code = :match_share_code
+                SET updated_ts = current_timestamp, match_share_code = :match_share_code
                 WHERE steam_id = :steam_id;
             """
             db.execute(sql
@@ -99,7 +99,7 @@ def iter_over_users():
         ,steam_id
         ,match_share_code
     FROM users.latest_match_auth
-    ORDER BY update_ts ASC
+    ORDER BY updated_ts ASC
     LIMIT 100
     ;
     """
