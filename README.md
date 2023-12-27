@@ -20,4 +20,4 @@ Counter-Strike 2 gameplay aggregator and stat collector
             - Faceit (TBD)
             - ESEA (TBD)
 	- Asynchronous match completion detection & handling
-        - PostgreSQL for storing match metadata
+	- PostgreSQL for storing match metadata
