@@ -5,7 +5,7 @@ import os
 
 homedir      = os.path.expanduser('~')
 ex_demo_name = '003658489776656351576_0546911420.dem.bz2'
-full_path = os.path.join(homedir,'demo/',ex_demo_name)
+full_path = os.path.join(homedir,'demos/',ex_demo_name)
 
 logger.info('Starting bzip2 decompress')
 start = time.time()
