@@ -7,6 +7,8 @@ homedir      = os.path.expanduser('~')
 ex_demo_name = '003658489776656351576_0546911420.dem.bz2'
 full_path = os.path.join(homedir,'demos/',ex_demo_name)
 
+logger.basicConfig(format='[%(asctime)s] %(levelname)s %(name)s: %(message)s', level=logger.DEBUG)
+
 logger.info('Starting bzip2 decompress')
 start = time.time()
 os.system(f"bzip2 -d -k {full_path}")
