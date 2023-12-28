@@ -1,8 +1,7 @@
-import express from 'express';
-import controller from '../controllers/example';
+import express from "express";
+import controller from "../controllers/example";
 
 const router = express.Router();
 
-router.get('/killsPerRound', controller.killsPerRound);
-
+router.post("/killsPerRound", controller.killsPerRound);
 export = router;
