@@ -1,3 +1,4 @@
+import e from "express";
 import { Team } from "./example.enum";
 
 export interface PlayerDeathEvent  {
@@ -44,4 +45,27 @@ export interface DemoTick {
     name: string,
     steamid: string,
     tick: number
+}
+
+export interface TeamEvent {
+    disconnet: boolean,
+    event_name: string,
+    isbot: boolean,
+    oldteam: number,
+    silent: boolean,
+    team: number,
+    tick: number,
+    user_name: string,
+    user_steamid: string
+}
+
+export interface FlashEvent { 
+    attacker_name: string,
+    attacker_steamid: string,
+    blind_druation: number,
+    entityid: number,
+    event_name: string,
+    tick: number,
+    user_name: string,
+    user_steamid: string
 }
