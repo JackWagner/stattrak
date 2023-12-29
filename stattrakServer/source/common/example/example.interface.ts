@@ -48,7 +48,7 @@ export interface DemoTick {
 }
 
 export interface TeamEvent {
-    disconnet: boolean,
+    disconnect: boolean,
     event_name: string,
     isbot: boolean,
     oldteam: number,
@@ -62,10 +62,36 @@ export interface TeamEvent {
 export interface FlashEvent { 
     attacker_name: string,
     attacker_steamid: string,
-    blind_druation: number,
+    blind_duration: number,
     entityid: number,
     event_name: string,
     tick: number,
     user_name: string,
     user_steamid: string
+}
+
+export interface LeaderBoardRecord {
+    user_name: string,
+    user_steamid: string,
+    user_kills: number,
+    total_flashes: number,
+    clean_flashes: number,
+    team_flashes: number,
+    total_flash_time: number,
+    clean_flash_time: number,
+    team_flash_time: number
+}
+
+export interface LeaderBoard {
+    playerRecords: LeaderBoardRecord[]
+}
+
+export interface FlashStat {
+    username: string,
+    team_flashes: number,
+    clean_flashes: number,
+    total_flashes: number,
+    clean_flash_time: number,
+    team_flash_time: number,
+    total_flash_time: number
 }

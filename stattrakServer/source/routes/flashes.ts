@@ -3,7 +3,6 @@ import controller from '../controllers/flashes';
 
 const router = express.Router();
 
-router.get('/teamFlashes', controller.teamFlashes);
-router.get('/cleanFlashes', controller.cleanFlashes);
+router.get('/teamFlashes', controller.getLeaderBoard);
 
 export = router;

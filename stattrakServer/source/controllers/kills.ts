@@ -4,21 +4,20 @@ import { DemoTick, PlayerDeathEvent, RoundEndEvent } from '../common/example/exa
 
 const filePath = "C:\\Users\\jules\\StatTrak\\demos\\nukeDemo.dem";
 
-const killsPerRound = async (req: Request, res: Response) => {
+interface Kill extends PlayerDeathEvent {
+    is_warmup_period: boolean;
+    total_rounds_played: number;
+    assister_last_place_name: string;
+    attacker_last_place_name: string;
+    user_last_place_name: string;
+    assister_team_name: string;
+    attacker_team_name: string;
+    ct_team_name: string;
+    t_team_name: string;
+    user_team_name: string;
+}
 
-    interface Kill extends PlayerDeathEvent {
-        is_warmup_period: boolean;
-        total_rounds_played: number;
-        assister_last_place_name: string;
-        attacker_last_place_name: string;
-        user_last_place_name: string;
-        assister_team_name: string;
-        attacker_team_name: string;
-        ct_team_name: string;
-        t_team_name: string;
-        user_team_name: string;
-    }
-
+export const getKills = (): Map<string, number> => {
     const kills: Array<Kill> = parseEvent(
         filePath,
         "player_death",
@@ -42,6 +41,13 @@ const killsPerRound = async (req: Request, res: Response) => {
         });
     };
 
+    return killsPerPlayer;
+}
+
+const killsPerPlayer = async (req: Request, res: Response) => {
+
+    const killsPerPlayer = getKills();
+
     return res.status(200).json({
         message: JSON.stringify(Object.fromEntries(killsPerPlayer))
     });
@@ -49,4 +55,4 @@ const killsPerRound = async (req: Request, res: Response) => {
 };
 
 
-export default { killsPerRound };
+export default { killsPerPlayer };
