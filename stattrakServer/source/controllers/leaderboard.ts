@@ -25,6 +25,7 @@ const getLeaderBoard = async (req: Request, res: Response) => {
             user_name: player.user_name,
             user_steamid: player.user_steamid,
             user_kills: killRecords.get(player.user_name) ?? 0,
+            flashes_thrown: flashRecord?.flashes_thrown ?? 0,
             total_flashes: flashRecord?.total_flashes ?? 0,
             clean_flashes: flashRecord?.clean_flashes ?? 0,
             team_flashes: flashRecord?.team_flashes ?? 0,
