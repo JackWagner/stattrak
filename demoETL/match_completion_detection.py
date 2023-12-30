@@ -1,4 +1,6 @@
 import requests
+from requests.adapters import HTTPAdapter, Retry
+
 import os
 import logging as logger
 from db_utils import Connect
@@ -15,7 +17,14 @@ steam_dict = load(steam_conf)
 # Internal to our Org
 api_key    = steam_dict.get('api_key')
 
+# Get DB connection
 db = Connect()
+
+# Get HTTPS request session with retries on Too Many Requests for URL 429
+s       = requests.Session()
+retries = Retry(total=5, backoff_factor=1, status_forcelist=[ 429, 502, 503, 504 ])
+s.mount('https://', HTTPAdapter(max_retries=retries))
+
 
 def find_user_latest_match(game_auth_code: str, steam_id: str, match_share_code: str, max_iterations=100, **kwarsg):
     """
@@ -41,9 +50,8 @@ def find_user_latest_match(game_auth_code: str, steam_id: str, match_share_code:
 
         try:
             # TO_DO: rate limit retry logic
-            sleep(1.5)
             logger.info(f'Requesting API...')
-            raw_response = requests.get(f'https://api.steampowered.com/ICSGOPlayers_730/GetNextMatchSharingCode/v1?key={api_key}&steamid={steam_id}&steamidkey={game_auth_code}&knowncode={match_share_code}')
+            raw_response = s.get(f'https://api.steampowered.com/ICSGOPlayers_730/GetNextMatchSharingCode/v1?key={api_key}&steamid={steam_id}&steamidkey={game_auth_code}&knowncode={match_share_code}')
             raw_response.raise_for_status()
         except requests.exceptions.HTTPError as errh:
             logger.error(errh)
@@ -112,12 +120,15 @@ def iter_over_users():
     for user in df.itertuples(index=True, name='Pandas'):
         logger.info(f'Finding user {user.steam_id} latest match')
         api_calls, res = find_user_latest_match(user.game_auth_code, user.steam_id, user.match_share_code)
-        logger.info(f'User {user.steam_id} took {str(api_calls)} Steam Web API requests to find latest match {res}')
+        if api_calls == 1:
+            logger.info(f'No new matches found for user {user.steam_id}, last was {res}')
+        else:
+            logger.info(f'User {user.steam_id} took {str(api_calls)} Steam Web API requests to find latest match {res}')
     
     logger.info('Finished finding and updating for top 100 users')
 
 while True:
-    logger.info('Waiting 2 mins...')
-    sleep(120)
+    logger.info('Waiting 5 seconds...')
+    sleep(5)
     logger.info('Starting search')
     iter_over_users()
