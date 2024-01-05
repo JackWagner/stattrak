@@ -23,7 +23,6 @@ class Connect():
         
         self.connection_str = f'postgresql://{self.user}:{self.password}@{self.host}:{self.port}/{self.database}'
         self.connection     = create_engine(self.connection_str,future=True)
-        print(f'Welcome {self.user}!')
 
     def execute(self, sql:str, params:dict = {}, returns:bool = True):
         """
