@@ -1,6 +1,6 @@
 from math import sqrt
-import json 
 
+"""
 match_stats = [
     {
          "user_name":"Concha"
@@ -49,6 +49,7 @@ match_stats = [
         ,"blind_duration_sec_sum":0.517483
     }
 ]
+"""
 
 def get_stat_types_list(match_stats:list):
     stat_types = []
@@ -94,12 +95,10 @@ def get_zscore_stat_tuple_list(match_stats:list):
     return zscore_stat_tuple_list
 
 def get_top_n_outlier_stat(match_stats:list,n:int=4):
-    return sorted(get_zscore_stat_tuple_list(match_stats),key=lambda x: x[3],reverse=True)[:n]
+    return sorted(get_zscore_stat_tuple_list(match_stats),key=lambda x: abs(x[3]),reverse=True)[:n]
 
 def get_outlier_stat_message(match_stats:list):
     message = ""
     for outlier_stat_tuple in get_top_n_outlier_stat(match_stats):
         message += f"{outlier_stat_tuple[0]} had {'only' if outlier_stat_tuple[3] < 0 else 'a whopping'} {outlier_stat_tuple[2]} {outlier_stat_tuple[1]}\n"
     return message
-
-print(get_outlier_stat_message(match_stats))
