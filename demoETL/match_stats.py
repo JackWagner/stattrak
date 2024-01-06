@@ -78,34 +78,28 @@ def get_standard_deviation_stat_dict(match_stats:list):
             std_dev_stat_dict[stat_type] += (user_stats.get(stat_type) - avg_stat_dict.get(stat_type)) ** 2
     return { key:sqrt(value/10.0) for key,value in std_dev_stat_dict.items() }
 
-def get_zscore_stat_dict(match_stats:list):
-    zscore_stat_dict  = {}
-    avg_stat_dict     = get_average_stat_dict(match_stats)
-    std_dev_stat_dict = get_standard_deviation_stat_dict(match_stats)
+def get_zscore_stat_tuple_list(match_stats:list):
+    zscore_stat_tuple_list = []
+    avg_stat_dict          = get_average_stat_dict(match_stats)
+    std_dev_stat_dict      = get_standard_deviation_stat_dict(match_stats)
     for user_stats in match_stats:
-        zscore_stat_dict[user_stats.get('user_name')] = {}
         for stat_type in get_stat_types_list(match_stats):
-            zscore_stat_dict[user_stats.get('user_name')][stat_type] = (user_stats.get(stat_type) - avg_stat_dict.get(stat_type))/std_dev_stat_dict.get(stat_type)
-    return zscore_stat_dict
+            zscore = (user_stats.get(stat_type) - avg_stat_dict.get(stat_type))/std_dev_stat_dict.get(stat_type)
+            zscore_stat_tuple_list.append(
+                                    (user_stats.get('user_name')
+                                    ,stat_type
+                                    ,user_stats.get(stat_type)
+                                    ,zscore)
+            )
+    return zscore_stat_tuple_list
 
-
-def get_most_outlier_stat(match_stats:list):
-    outlier_user       = ""
-    outlier_stat_type  = ""
-    biggest_zscore     = 0
-    zscore_stat_dict = get_zscore_stat_dict(match_stats)
-    for user_name, stats in zscore_stat_dict.items():
-        for stat_type, stat_zscore in stats.items():
-            if abs(stat_zscore) > abs(biggest_zscore):
-                outlier_user      = user_name
-                outlier_stat_type = stat_type
-                biggest_zscore    = stat_zscore
-    return outlier_user, outlier_stat_type, biggest_zscore
+def get_top_n_outlier_stat(match_stats:list,n:int=4):
+    return sorted(get_zscore_stat_tuple_list(match_stats),key=lambda x: x[3],reverse=True)[:n]
 
 def get_outlier_stat_message(match_stats:list):
-    outlier_user, outlier_stat_type, stat_zscore  = get_most_outlier_stat(match_stats)
-    for user_stats in match_stats:
-        if outlier_user == user_stats.get('user_name'):
-            return f"{outlier_user} had {'only' if stat_zscore < 0 else 'a whopping'} {user_stats.get(outlier_stat_type)} {outlier_stat_type}"
+    message = ""
+    for outlier_stat_tuple in get_top_n_outlier_stat(match_stats):
+        message += f"{outlier_stat_tuple[0]} had {'only' if outlier_stat_tuple[3] < 0 else 'a whopping'} {outlier_stat_tuple[2]} {outlier_stat_tuple[1]}\n"
+    return message
 
 print(get_outlier_stat_message(match_stats))
