@@ -19,16 +19,7 @@ import (
 // Participants returns a struct with all currently connected players & spectators and utility functions.
 // The struct contains references to the original maps so it's always up-to-date.
 
-func main() {
-	f, err := os.Open("/Users/vldt-jww/demos/example.dem")
-	if err != nil {
-		log.Panic("failed to open demo file: ", err)
-	}
-	defer f.Close()
-
-	p := dem.NewParser(f)
-	defer p.Close()
-
+func getTeamFlashes(p dem.Parser) dataframe.DataFrame {
 	Players := series.New([]string{}, series.String, "Players")
 	Attackers := series.New([]string{}, series.String, "Attackers")
 	FlashDurations := series.New([]float64{}, series.Float, "Flash Durations")
@@ -38,12 +29,12 @@ func main() {
 	// Register handler on flashbang events and print summary string
 	p.RegisterEventHandler(func(e events.PlayerFlashed) {
 		if !team_info_aquired && p.GameState().IsMatchStarted() {
-			counter_terrorists := p.GameState().TeamCounterTerrorists().Members()
-			terrorists := p.GameState().TeamTerrorists().Members()
+			team_1 := p.GameState().TeamCounterTerrorists().Members()
+			team_2 := p.GameState().TeamTerrorists().Members()
 			fmt.Println("CT's:")
-			fmt.Println(counter_terrorists)
+			fmt.Println(team_1)
 			fmt.Println("T's:")
-			fmt.Println(terrorists)
+			fmt.Println(team_2)
 			team_info_aquired = true
 		}
 
@@ -56,17 +47,30 @@ func main() {
 	})
 
 	// Parse to end
-	err = p.ParseToEnd()
+	err := p.ParseToEnd()
 	if err != nil {
 		log.Panic("failed to parse demo: ", err)
 	}
 
 	// Create a dataframe from the data
-	df := dataframe.New(
+	return dataframe.New(
 		Players,
 		Attackers,
 		FlashDurations,
 	)
+}
+
+func main() {
+	f, err := os.Open("/Users/vldt-jww/demos/example.dem")
+	if err != nil {
+		log.Panic("failed to open demo file: ", err)
+	}
+	defer f.Close()
+
+	p := dem.NewParser(f)
+	defer p.Close()
+
+	df := getTeamFlashes(p)
 
 	// Print dataframe
 	fmt.Println(df)
