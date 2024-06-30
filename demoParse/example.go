@@ -2,7 +2,7 @@ package main
 
 import "fmt"
 
-func main() {
+func example() {
 	fmt.Println("Enter a temp in F:")
 	var farhenheit float64
 	fmt.Scanf("%f", &farhenheit)
