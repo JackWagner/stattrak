@@ -33,12 +33,26 @@ func main() {
 	Attackers := series.New([]string{}, series.String, "Attackers")
 	FlashDurations := series.New([]float64{}, series.Float, "Flash Durations")
 
+	team_info_aquired := false
+
 	// Register handler on flashbang events and print summary string
 	p.RegisterEventHandler(func(e events.PlayerFlashed) {
-		Players.Append([]string{e.Player.Name})
-		Attackers.Append([]string{e.Attacker.Name})
-		FlashDurations.Append([]float64{float64(e.FlashDuration())})
-		fmt.Printf("%s flashed %s for %s\n", e.Attacker, e.Player, e.FlashDuration())
+		if !team_info_aquired && p.GameState().IsMatchStarted() {
+			counter_terrorists := p.GameState().TeamCounterTerrorists().Members()
+			terrorists := p.GameState().TeamTerrorists().Members()
+			fmt.Println("CT's:")
+			fmt.Println(counter_terrorists)
+			fmt.Println("T's:")
+			fmt.Println(terrorists)
+			team_info_aquired = true
+		}
+
+		if e.Attacker.Team == e.Player.Team {
+			Players.Append([]string{e.Player.Name})
+			Attackers.Append([]string{e.Attacker.Name})
+			FlashDurations.Append([]float64{float64(e.FlashDuration())})
+			fmt.Printf("%s teamflashed %s for %s\n", e.Attacker, e.Player, e.FlashDuration())
+		}
 	})
 
 	// Parse to end
