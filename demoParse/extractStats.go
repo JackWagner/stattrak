@@ -8,6 +8,7 @@ import (
 	dataframe "github.com/go-gota/gota/dataframe"
 	series "github.com/go-gota/gota/series"
 	dem "github.com/markus-wa/demoinfocs-golang/v4/pkg/demoinfocs"
+	common "github.com/markus-wa/demoinfocs-golang/v4/pkg/demoinfocs/common"
 	events "github.com/markus-wa/demoinfocs-golang/v4/pkg/demoinfocs/events"
 )
 
@@ -19,25 +20,26 @@ import (
 // Participants returns a struct with all currently connected players & spectators and utility functions.
 // The struct contains references to the original maps so it's always up-to-date.
 
+func getPlayers(p dem.Parser) []*common.Player {
+	var all_players []*common.Player
+	p.RegisterEventHandler(func(e events.PlayerFlashed) {
+		if p.GameState().IsMatchStarted() {
+			team_1 := p.GameState().TeamCounterTerrorists().Members()
+			team_2 := p.GameState().TeamTerrorists().Members()
+			all_players = append(team_1[:], team_2[:]...)
+			//p.Close()
+		}
+	})
+	return all_players
+}
+
 func getTeamFlashes(p dem.Parser) dataframe.DataFrame {
 	Players := series.New([]string{}, series.String, "Players")
 	Attackers := series.New([]string{}, series.String, "Attackers")
 	FlashDurations := series.New([]float64{}, series.Float, "Flash Durations")
 
-	team_info_aquired := false
-
 	// Register handler on flashbang events and print summary string
 	p.RegisterEventHandler(func(e events.PlayerFlashed) {
-		if !team_info_aquired && p.GameState().IsMatchStarted() {
-			team_1 := p.GameState().TeamCounterTerrorists().Members()
-			team_2 := p.GameState().TeamTerrorists().Members()
-			fmt.Println("CT's:")
-			fmt.Println(team_1)
-			fmt.Println("T's:")
-			fmt.Println(team_2)
-			team_info_aquired = true
-		}
-
 		if e.Attacker.Team == e.Player.Team {
 			Players.Append([]string{e.Player.Name})
 			Attackers.Append([]string{e.Attacker.Name})
@@ -69,6 +71,9 @@ func main() {
 
 	p := dem.NewParser(f)
 	defer p.Close()
+
+	players := getPlayers(p)
+	fmt.Printf("Number of Players = %d\n", len(players))
 
 	df := getTeamFlashes(p)
 
