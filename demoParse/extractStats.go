@@ -62,6 +62,34 @@ func getTeamFlashes(p dem.Parser) dataframe.DataFrame {
 	)
 }
 
+func getKills(p dem.Parser) dataframe.DataFrame {
+	victim := series.New([]string{}, series.String, "Victim")
+	killer := series.New([]string{}, series.String, "Killer")
+	time := series.New([]int64{}, series.Int, "Time (ms)")
+	p.RegisterEventHandler(func(e events.Kill) {
+		victim.Append([]string{e.Victim.Name})
+		killer.Append([]string{e.Killer.Name})
+		time.Append([]int64{p.CurrentTime().Milliseconds()})
+	})
+	return dataframe.New(victim, killer, time)
+}
+
+func getInjuries(p dem.Parser) dataframe.DataFrame {
+	victim := series.New([]string{}, series.String, "Victim")
+	attacker := series.New([]string{}, series.String, "Attacker")
+	healthDamage := series.New([]int64{}, series.Int, "Health Damage")
+	armorDamage := series.New([]int64{}, series.Int, "Armor Damage")
+	time := series.New([]int64{}, series.Int, "Time (ms)")
+	p.RegisterEventHandler(func(e events.PlayerHurt) {
+		victim.Append([]string{e.Player.Name})
+		attacker.Append([]string{e.Attacker.Name})
+		healthDamage.Append([]int64{int64(e.HealthDamageTaken)})
+		armorDamage.Append([]int64{int64(e.ArmorDamageTaken)})
+		time.Append([]int64{p.CurrentTime().Milliseconds()})
+	})
+	return dataframe.New(victim, attacker, healthDamage, armorDamage, time)
+}
+
 func main() {
 	f, err := os.Open("/Users/vldt-jww/demos/example.dem")
 	if err != nil {
