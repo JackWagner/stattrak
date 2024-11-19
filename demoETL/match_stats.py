@@ -1,6 +1,44 @@
 from math import sqrt
-import json 
 
+# Demo Parsing 
+
+def get_team_flashed_by_player(demoparser):
+    # Get team number by player
+    team_df = demoparser.parse_event("player_team")[['team','user_steamid']].set_index('user_steamid')
+
+    # get all flashbang events and filter out warmup
+    all_flashed_events_df = demoparser.parse_event("player_blind", other=["is_warmup_period"])
+    flashed_events_df     = all_flashed_events_df[all_flashed_events_df["is_warmup_period"] == False]
+
+    # Join in the flashee team and flasher team sequentially
+    flashes_w_user_team_df = flashed_events_df.merge(team_df, on='user_steamid')
+    flashes_w_both_team_df = flashes_w_user_team_df.merge(team_df, left_on='attacker_steamid', right_on='user_steamid', suffixes=['_user','_attacker'])
+
+    # Filter to where flashee team and flasher team are the same
+    team_flashes_df = flashes_w_both_team_df[flashes_w_both_team_df["team_user"]==flashes_w_both_team_df["team_attacker"]]
+
+    #print(team_flashes_df)
+
+    # Aggregate and sort by team
+    team_flash_leaderboard_df = team_flashes_df[['attacker_name','team_attacker','blind_duration']].groupby(['attacker_name','team_attacker']).agg(['count','sum'])
+    team_flash_leaderboard_df.rename(columns={'attacker_name': 'user_name'}, inplace=True)
+    #print(team_flash_leaderboard_df)
+    print(team_flash_leaderboard_df.sort_values(by=[('blind_duration','count')], ascending=False))
+    return team_flash_leaderboard_df
+
+# Demo Stats Utils
+
+def get_merged_stat_df(stat_df_list:list, key:str='user_name'):
+    if len(stat_df_list) == 1:
+        return stat_df_list[0]
+
+    stat_dfs_w_index = [stat_df.set_index(key) for stat_df in stat_df_list]
+    return stat_dfs_w_index[0].join(stat_dfs_w_index[1:])
+
+def get_stat_json(df):
+    return df.to_json(orient="records")
+
+"""
 match_stats = [
     {
          "user_name":"Concha"
@@ -49,6 +87,9 @@ match_stats = [
         ,"blind_duration_sec_sum":0.517483
     }
 ]
+"""
+
+# Automated Outlier Detection
 
 def get_stat_types_list(match_stats:list):
     stat_types = []
@@ -78,34 +119,26 @@ def get_standard_deviation_stat_dict(match_stats:list):
             std_dev_stat_dict[stat_type] += (user_stats.get(stat_type) - avg_stat_dict.get(stat_type)) ** 2
     return { key:sqrt(value/10.0) for key,value in std_dev_stat_dict.items() }
 
-def get_zscore_stat_dict(match_stats:list):
-    zscore_stat_dict  = {}
-    avg_stat_dict     = get_average_stat_dict(match_stats)
-    std_dev_stat_dict = get_standard_deviation_stat_dict(match_stats)
+def get_zscore_stat_tuple_list(match_stats:list):
+    zscore_stat_tuple_list = []
+    avg_stat_dict          = get_average_stat_dict(match_stats)
+    std_dev_stat_dict      = get_standard_deviation_stat_dict(match_stats)
     for user_stats in match_stats:
-        zscore_stat_dict[user_stats.get('user_name')] = {}
         for stat_type in get_stat_types_list(match_stats):
-            zscore_stat_dict[user_stats.get('user_name')][stat_type] = (user_stats.get(stat_type) - avg_stat_dict.get(stat_type))/std_dev_stat_dict.get(stat_type)
-    return zscore_stat_dict
+            zscore = (user_stats.get(stat_type) - avg_stat_dict.get(stat_type))/std_dev_stat_dict.get(stat_type)
+            zscore_stat_tuple_list.append(
+                                    (user_stats.get('user_name')
+                                    ,stat_type
+                                    ,user_stats.get(stat_type)
+                                    ,zscore)
+            )
+    return zscore_stat_tuple_list
 
-
-def get_most_outlier_stat(match_stats:list):
-    outlier_user       = ""
-    outlier_stat_type  = ""
-    biggest_zscore     = 0
-    zscore_stat_dict = get_zscore_stat_dict(match_stats)
-    for user_name, stats in zscore_stat_dict.items():
-        for stat_type, stat_zscore in stats.items():
-            if abs(stat_zscore) > abs(biggest_zscore):
-                outlier_user      = user_name
-                outlier_stat_type = stat_type
-                biggest_zscore    = stat_zscore
-    return outlier_user, outlier_stat_type, biggest_zscore
+def get_top_n_outlier_stat(match_stats:list,n:int=4):
+    return sorted(get_zscore_stat_tuple_list(match_stats),key=lambda x: abs(x[3]),reverse=True)[:n]
 
 def get_outlier_stat_message(match_stats:list):
-    outlier_user, outlier_stat_type, stat_zscore  = get_most_outlier_stat(match_stats)
-    for user_stats in match_stats:
-        if outlier_user == user_stats.get('user_name'):
-            return f"{outlier_user} had {'only' if stat_zscore < 0 else 'a whopping'} {user_stats.get(outlier_stat_type)} {outlier_stat_type}"
-
-print(get_outlier_stat_message(match_stats))
+    message = ""
+    for outlier_stat_tuple in get_top_n_outlier_stat(match_stats):
+        message += f"{outlier_stat_tuple[0]} had {'only' if outlier_stat_tuple[3] < 0 else 'a whopping'} {outlier_stat_tuple[2]} {outlier_stat_tuple[1]}\n"
+    return message
