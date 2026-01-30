@@ -97,75 +97,241 @@ Counter-Strike 2 gameplay aggregator and stat collector
 
 ### Built With
 
-* [![Steam][Steam.js]][Steam-url]
-* [![AWS][AWS.js]][AWS-url]
-* [![Python][Python.js]][Python-url]
+* [![TypeScript][TypeScript.js]][TypeScript-url]
 * [![React][React.js]][React-url]
-* [![Go][Go.js]][Go-url]
-<!--* [![Alpaca][Alpaca.js]][Alpaca-url]
-* [![X][X.js]][X-url]
-* [![Discord][Discord.js]][Discord-url]
-* [![Reddit][Reddit.js]][Reddit-url] -->
+* [![Node.js][Node.js]][Node-url]
+* [![Python][Python.js]][Python-url]
+* [![PostgreSQL][PostgreSQL.js]][PostgreSQL-url]
+* [![Steam][Steam.js]][Steam-url]
 
-<!-- <p align="right">(<a href="#readme-top">back to top</a>)</p> -->
+<p align="right">(<a href="#readme-top">back to top</a>)</p>
 
-### Sources
+## Architecture
 
-- ./stattrak
-    - Front End using TypeScript React
-- ./stattrakServer
-    - Back End TypeScript API for parsing game files
-        - express
-	    - @laihoe/demoparser
-	    - morgan
-	    - typescript
-- ./demoETL
-    - Python ETL pipeline for moving demo files
-        - Data sources:
-            - CS2 MM
-            - Faceit (TBD)
-            - ESEA (TBD)
-	- Asynchronous match completion detection & handling
-	- PostgreSQL for storing match metadata
+```
+┌─────────────────┐     ┌─────────────────┐     ┌─────────────────┐
+│   stattrakClient│────▶│  stattrakServer │────▶│   PostgreSQL    │
+│   (React App)   │     │  (Express API)  │     │    Database     │
+└─────────────────┘     └─────────────────┘     └────────┬────────┘
+        │                                                │
+        │              ┌─────────────────┐               │
+        │              │     demoETL     │               │
+        │              │ (Python Pipeline)│◀─────────────┘
+        │              └────────┬────────┘
+        │                       │
+        │                       ▼
+        │              ┌─────────────────┐
+        │              │   Steam Web API │
+        │              │   & Demo Files  │
+        └──────────────└─────────────────┘
+```
+
+## Project Structure
+
+### stattrakClient (React Frontend)
+Location: `./stattrakClient`
+
+A React + TypeScript single-page application for viewing CS2 match statistics.
+
+**Tech Stack:**
+- React 18 with TypeScript
+- Vite (build tool)
+- React Router (client-side routing)
+
+**Key Directories:**
+```
+stattrakClient/src/
+├── components/     # Reusable UI components (Layout, Loading, StatCard, etc.)
+├── pages/          # Page components (Home, Matches, Player, Weapons)
+├── services/       # API client for backend communication
+└── types/          # TypeScript interfaces for all data models
+```
+
+**Running the Frontend:**
+```bash
+cd stattrakClient
+npm install
+npm run dev        # Development server on http://localhost:5173
+npm run build      # Production build
+```
+
+---
+
+### stattrakServer (TypeScript API)
+Location: `./stattrakServer`
+
+A REST API server built with Express.js and TypeScript that serves match statistics from PostgreSQL.
+
+**Tech Stack:**
+- Express.js with TypeScript
+- PostgreSQL (via `pg` driver)
+- Helmet (security headers)
+- CORS enabled
+
+**Key Directories:**
+```
+stattrakServer/source/
+├── config/         # Environment configuration (dotenv)
+├── database/       # PostgreSQL connection pool
+├── models/         # TypeScript interfaces (Player, Match, Round, Kill, Weapon)
+├── services/       # Database query logic
+├── controllers/    # Request handlers
+├── routes/         # API endpoint definitions
+├── middleware/     # Error handling
+├── utils/          # Custom error classes
+└── types/          # Enums and API response types
+```
+
+**API Endpoints:**
+| Endpoint | Description |
+|----------|-------------|
+| `GET /health` | Health check |
+| `GET /api/players/:steamId` | Player profile & aggregate stats |
+| `GET /api/players/:steamId/matches` | Player match history (paginated) |
+| `GET /api/players/:steamId/weapons` | Player weapon breakdown |
+| `GET /api/players/:steamId/maps` | Player performance by map |
+| `GET /api/matches` | List all matches (paginated) |
+| `GET /api/matches/:matchId` | Full match details with scoreboard |
+| `GET /api/matches/:matchId/rounds` | Round-by-round breakdown |
+| `GET /api/matches/:matchId/kills` | All kill events in match |
+| `GET /api/weapons` | Global weapon statistics |
+| `GET /api/weapons/:weaponName` | Stats for specific weapon |
+
+**Running the Server:**
+```bash
+cd stattrakServer
+npm install
+cp .env.example .env   # Configure database credentials
+npm run dev            # Development server on http://localhost:8080
+npm run build          # Compile TypeScript
+```
+
+**Environment Variables (.env):**
+```
+PORT=8080
+NODE_ENV=development
+DB_HOST=localhost
+DB_PORT=5432
+DB_NAME=stattrak
+DB_USER=postgres
+DB_PASSWORD=your_password
+```
+
+---
+
+### demoETL (Python Pipeline)
+Location: `./demoETL`
+
+Python ETL pipeline that detects completed CS2 matches, downloads demo files, and parses them using demoparser2.
+
+**Tech Stack:**
+- Python 3
+- SQLAlchemy + psycopg2 (PostgreSQL)
+- steam & csgo libraries (Steam/CSGO client integration)
+- demoparser2 (demo file parsing)
+- pandas (data manipulation)
+
+**Key Files:**
+```
+demoETL/
+├── db_utils.py                  # Database connection class
+├── match_completion_detection.py # Polls Steam API for new matches
+├── retrieve_match.py            # Main ETL orchestration
+└── demo.py                      # Demo download, decompress, parse
+```
+
+**Data Flow:**
+1. `match_completion_detection.py` - Polls Steam Web API, queues new matches
+2. `retrieve_match.py` - Dequeues matches, fetches demo URLs from Steam
+3. `demo.py` - Downloads, decompresses, and parses demo files with demoparser2
+
+**Data Sources:**
+- CS2 Matchmaking (implemented)
+- Faceit (planned)
+- ESEA (planned)
+
+**Database Schemas:**
+- `matches.queue` - Matches pending processing
+- `matches.processed` - Successfully processed matches
+- `matches.queue_failed_to_process` - Failed processing attempts
+- `users.latest_match_auth` - User authentication & latest match codes
+- `stats.*` - Parsed match statistics (planned)
+
+**Configuration:**
+Requires `~/.ssh/db_user.json` with PostgreSQL credentials:
+```json
+{
+  "database": "stattrak",
+  "user": "your_user",
+  "host": "localhost",
+  "password": "your_password",
+  "port": "5432"
+}
+```
+
+Requires `~/.ssh/steam_user.json` with Steam credentials:
+```json
+{
+  "username": "your_steam_username",
+  "password": "your_steam_password"
+}
+```
 
 <!-- GETTING STARTED -->
 ## Getting Started
 
-<!-- This is an example of how you may give instructions on setting up your project locally.
-To get a local copy up and running follow these simple example steps. -->
-
 ### Prerequisites
 
-<!--This is an example of how to list things you need to use the software and how to install them.
-* npm
-  ```sh
-  npm install npm@latest -g
-  ```
--->
+- **Node.js** (v18+) and npm
+- **Python** (3.9+) with pip
+- **PostgreSQL** (14+)
+- **Steam Account** with CS2 and valid match history
+
 ### Installation
-<!--
-1. Get a free API Key at [https://example.com](https://example.com)
-2. Clone the repo
+
+1. **Clone the repository**
    ```sh
-   git clone https://github.com/github_username/repo_name.git
+   git clone https://github.com/JackWagner/stattrak.git
+   cd stattrak
    ```
-3. Install NPM packages
+
+2. **Set up PostgreSQL database**
+   ```sql
+   CREATE DATABASE stattrak;
+   ```
+
+3. **Install and run the API server**
    ```sh
+   cd stattrakServer
    npm install
+   cp .env.example .env
+   # Edit .env with your database credentials
+   npm run dev
    ```
-4. Enter your API in `config.js`
-   ```js
-   const API_KEY = 'ENTER YOUR API';
-   ```
-5. Change git remote url to avoid accidental pushes to base project
+
+4. **Install and run the React frontend**
    ```sh
-   git remote set-url origin github_username/repo_name
-   git remote -v # confirm the changes
+   cd stattrakClient
+   npm install
+   npm run dev
    ```
+
+5. **Set up the Python ETL** (optional, for processing new matches)
+   ```sh
+   cd demoETL
+   pip install -r requirements.txt
+   # Configure ~/.ssh/db_user.json and ~/.ssh/steam_user.json
+   python retrieve_match.py
+   ```
+
+### Quick Start
+
+Once everything is running:
+- **Frontend**: http://localhost:5173
+- **API Server**: http://localhost:8080
+- **API Health Check**: http://localhost:8080/health
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
-
--->
 
 <!-- USAGE EXAMPLES -->
 ## Usage
@@ -181,17 +347,19 @@ _For more examples, please refer to the [Documentation](https://example.com)_
 <!-- ROADMAP -->
 ## Roadmap
 
-<!--
-- [ ] Feature 1
-- [ ] Feature 2
-- [ ] Feature 3
-    - [ ] Nested Feature
+- [x] TypeScript API server with Express
+- [x] React frontend with match/player/weapon views
+- [x] Python ETL for match detection and demo downloading
+- [ ] Complete stats schema for parsed demo data
+- [ ] ETL integration to store parsed stats in PostgreSQL
+- [ ] Faceit match integration
+- [ ] ESEA match integration
+- [ ] User authentication
+- [ ] Real-time match notifications
 
-See the [open issues](https://github.com/github_username/repo_name/issues) for a full list of proposed features (and known issues).
+See the [open issues](https://github.com/JackWagner/stattrak/issues) for a full list of proposed features and known issues.
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
-
--->
 
 <!-- CONTRIBUTING -->
 ## Contributing
@@ -273,5 +441,9 @@ Project Link: [https://github.com/JackWagner/stattrak](https://github.com/JackWa
 [React-url]: https://reactjs.org/
 [Steam.js]: https://img.shields.io/badge/Steam-%23000000.svg?logo=steam&logoColor=white
 [Steam-url]: https://steamcommunity.com/dev
-[AWS.js]: https://img.shields.io/badge/AWS-%23FF9900.svg?logo=amazon-web-services&logoColor=white
-[AWS-url]: https://aws.amazon.com
+[TypeScript.js]: https://img.shields.io/badge/TypeScript-3178C6?style=for-the-badge&logo=typescript&logoColor=white
+[TypeScript-url]: https://www.typescriptlang.org/
+[Node.js]: https://img.shields.io/badge/Node.js-339933?style=for-the-badge&logo=nodedotjs&logoColor=white
+[Node-url]: https://nodejs.org/
+[PostgreSQL.js]: https://img.shields.io/badge/PostgreSQL-4169E1?style=for-the-badge&logo=postgresql&logoColor=white
+[PostgreSQL-url]: https://www.postgresql.org/
