@@ -7,3 +7,4 @@ stattrakServer/.env.example
 
 # Local file-based tables (temporary PostgreSQL workaround)
 tables/
+schema.sql
