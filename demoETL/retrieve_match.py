@@ -145,7 +145,7 @@ def match_processing(df, match_decode):
     
     # Download, decompress, parse, store and delete Demo
     try:
-        demo = Demo(demo_url)
+        demo = Demo(demo_url, db=db)
         demo.process()
     except Exception as e:
         logger.error(e)
