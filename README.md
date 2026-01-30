@@ -69,7 +69,6 @@
       <a href="#getting-started">Getting Started</a>
       <ul>
         <li><a href="#prerequisites">Prerequisites</a></li>
-        <li><a href="#installation">Installation</a></li>
       </ul>
     </li>
     <li><a href="#usage">Usage</a></li>
@@ -255,43 +254,6 @@ demoETL/
 - **Python** (3.9+) with pip
 - **PostgreSQL** (14+)
 - **Steam Account** with CS2 and valid match history
-
-### Installation
-
-1. **Clone the repository**
-   ```sh
-   git clone https://github.com/JackWagner/stattrak.git
-   cd stattrak
-   ```
-
-2. **Set up PostgreSQL database**
-   ```sql
-   CREATE DATABASE stattrak;
-   ```
-
-3. **Install and run the API server**
-   ```sh
-   cd stattrakServer
-   npm install
-   cp .env.example .env
-   # Edit .env with your database credentials
-   npm run dev
-   ```
-
-4. **Install and run the React frontend**
-   ```sh
-   cd stattrakClient
-   npm install
-   npm run dev
-   ```
-
-5. **Set up the Python ETL** (optional, for processing new matches)
-   ```sh
-   cd demoETL
-   pip install -r requirements.txt
-   # Configure ~/.ssh/db_user.json and ~/.ssh/steam_user.json
-   python retrieve_match.py
-   ```
 
 ### Quick Start
 

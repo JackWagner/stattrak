@@ -14,6 +14,7 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { getTeamFlashLeaderboard, getEnemyFlashLeaderboard } from '../services/api';
 import type { FlashLeaderboardEntry } from '../types';
+import Layout from '../components/Layout';
 import Loading from '../components/Loading';
 import ErrorMessage from '../components/ErrorMessage';
 
@@ -71,12 +72,13 @@ export default function FlashStatsPage() {
   }, []);
 
   return (
-    <div className="flash-stats-page">
-      <h1>Flash Statistics</h1>
-      <p className="page-description">
-        Track flashbang effectiveness across all matches. See who's helping their team
-        with well-timed flashes... and who's blinding their own teammates.
-      </p>
+    <Layout>
+      <div className="flash-stats-page">
+        <h1>Flash Statistics</h1>
+        <p className="page-description">
+          Track flashbang effectiveness across all matches. See who's helping their team
+          with well-timed flashes... and who's blinding their own teammates.
+        </p>
 
       {/* Tab Navigation */}
       <div className="flash-tabs">
@@ -313,6 +315,7 @@ export default function FlashStatsPage() {
           padding: 2rem;
         }
       `}</style>
-    </div>
+      </div>
+    </Layout>
   );
 }

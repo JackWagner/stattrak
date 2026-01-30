@@ -10,7 +10,7 @@ from time import sleep
 logger.basicConfig(format='[%(asctime)s] %(levelname)s %(name)s: %(message)s', level=logger.DEBUG)
 
 # Get codes
-homedir         = os.path.expanduser('~')
+homedir    = os.path.expanduser('~')
 steam_conf = open(os.path.join(homedir,'.ssh/steam_api.json'),'r')
 steam_dict = load(steam_conf)
 

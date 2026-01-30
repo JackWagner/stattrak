@@ -68,7 +68,13 @@ class FileStatsInserter:
 
     def _parse_rounds(self):
         if self._rounds_df is None:
-            self._rounds_df = self.parser.parse_event("round_end")
+            result = self.parser.parse_event("round_end")
+            # Convert list to DataFrame if necessary
+            if isinstance(result, list):
+                import pandas as pd
+                self._rounds_df = pd.DataFrame(result) if result else pd.DataFrame()
+            else:
+                self._rounds_df = result
         return self._rounds_df
 
     def _parse_kills(self):
@@ -81,7 +87,7 @@ class FileStatsInserter:
             props = [
                 "kills_total", "deaths_total", "assists_total",
                 "headshot_kills_total", "damage_total", "score", "mvps",
-                "team_name", "name"
+                "team_name"
             ]
             ticks_df = self.parser.parse_ticks(props)
             if 'tick' in ticks_df.columns and len(ticks_df) > 0:
@@ -146,6 +152,8 @@ class FileStatsInserter:
         # Calculate scores
         ct_score = 0
         t_score = 0
+        valid_rounds = rounds_df  # Initialize valid_rounds
+
         if hasattr(rounds_df, 'iterrows'):
             valid_rounds = rounds_df[rounds_df['winner'].notna()] if 'winner' in rounds_df.columns else rounds_df
             for _, row in valid_rounds.iterrows():
@@ -164,7 +172,7 @@ class FileStatsInserter:
             'demo_url': self.demo_url,
             'played_at': datetime.now().isoformat(),
             'duration': int(header.get('playback_time', 0)),
-            'total_rounds': len(valid_rounds) if hasattr(rounds_df, '__len__') else 0,
+            'total_rounds': len(valid_rounds) if hasattr(valid_rounds, '__len__') else 0,
             'ct_score': ct_score,
             't_score': t_score,
             'winning_side': winning_side
@@ -178,14 +186,17 @@ class FileStatsInserter:
         scoreboard = self._parse_scoreboard()
         rounds_df = self._parse_rounds()
         damage_df = self._parse_damage()
+        player_teams_df = self._parse_player_teams()
 
         if scoreboard is None or len(scoreboard) == 0:
             logger.warning("No scoreboard data to insert")
             return
 
         # Calculate total rounds
-        valid_rounds = rounds_df[rounds_df['winner'].notna()] if 'winner' in rounds_df.columns else rounds_df
-        total_rounds = max(len(valid_rounds), 1)
+        valid_rounds = rounds_df  # Initialize valid_rounds
+        if hasattr(rounds_df, 'columns') and 'winner' in rounds_df.columns:
+            valid_rounds = rounds_df[rounds_df['winner'].notna()]
+        total_rounds = max(len(valid_rounds), 1) if hasattr(valid_rounds, '__len__') else 1
 
         # Calculate damage per player
         player_damage = {}
@@ -201,10 +212,15 @@ class FileStatsInserter:
             damage = player_damage.get(steam_id, 0)
             adr = round(damage / total_rounds, 2) if total_rounds > 0 else 0
 
+            # Get player name from player_teams if available
+            player_name = 'Unknown'
+            if player_teams_df is not None and steam_id in player_teams_df.index:
+                player_name = player_teams_df.loc[steam_id, 'user_name']
+
             player_data = {
                 'match_id': self.match_id,
                 'steam_id': steam_id,
-                'name': player.get('name', 'Unknown'),
+                'name': player_name,
                 'team': player.get('team_name', ''),
                 'kills': int(player.get('kills_total', 0)),
                 'deaths': int(player.get('deaths_total', 0)),
@@ -224,6 +240,10 @@ class FileStatsInserter:
     def insert_rounds(self):
         """Insert round data."""
         rounds_df = self._parse_rounds()
+
+        if rounds_df is None or len(rounds_df) == 0:
+            logger.warning("No round data to insert")
+            return
 
         ct_score = 0
         t_score = 0

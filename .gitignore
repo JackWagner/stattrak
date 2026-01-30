@@ -4,7 +4,7 @@ notes/
 demos/
 *.dem
 *.dem.bz2
-stattrakServer/.env.example
+stattrakServer/.env
 demoETL/__pycache__
 
 # Local file-based tables (temporary PostgreSQL workaround)
