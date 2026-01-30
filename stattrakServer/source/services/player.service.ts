@@ -1,62 +1,54 @@
-import { query } from "../database/pool";
+/**
+ * Player Service
+ * ==============
+ * Database queries for player data.
+ * Currently using file-based storage as a PostgreSQL workaround.
+ */
+
+import { fileStore } from "../database/file-store";
 import { NotFoundError } from "../utils/errors";
-import {
+import type {
   PlayerStats,
   PlayerMatchStats,
   PlayerMapStats,
 } from "../models/player.model";
-import { PlayerWeaponAggregate } from "../models/weapon.model";
-import { PaginationParams, PaginatedResponse } from "../types/api.types";
+import type { PlayerWeaponAggregate } from "../models/weapon.model";
+import type { PaginationParams, PaginatedResponse } from "../types/api.types";
 
 export class PlayerService {
   // Get player profile with aggregate stats
   async getPlayerStats(steamId: string): Promise<PlayerStats> {
-    const result = await query<any>(
-      `SELECT
-        pm.steam_id as "steamId",
-        pm.name,
-        COUNT(DISTINCT pm.match_id) as "totalMatches",
-        SUM(CASE WHEN pm.result = 'WIN' THEN 1 ELSE 0 END) as wins,
-        SUM(CASE WHEN pm.result = 'LOSS' THEN 1 ELSE 0 END) as losses,
-        SUM(CASE WHEN pm.result = 'TIE' THEN 1 ELSE 0 END) as ties,
-        SUM(pm.kills) as "totalKills",
-        SUM(pm.deaths) as "totalDeaths",
-        SUM(pm.assists) as "totalAssists",
-        ROUND(AVG(pm.adr)::numeric, 2) as adr,
-        ROUND(100.0 * SUM(pm.headshots) / NULLIF(SUM(pm.kills), 0), 2) as "headshotPercentage",
-        SUM(pm.mvps) as "totalMvps"
-      FROM stats.player_matches pm
-      WHERE pm.steam_id = $1
-      GROUP BY pm.steam_id, pm.name`,
-      [steamId],
-    );
+    const stats = fileStore.getPlayerStats(steamId);
 
-    if (result.rows.length === 0) {
+    if (!stats) {
       throw new NotFoundError("Player");
     }
 
-    const row = result.rows[0];
+    const totalMatches = stats.total_matches;
+    const totalKills = stats.total_kills;
+    const totalDeaths = stats.total_deaths;
+
     return {
-      steamId: row.steamId,
-      name: row.name,
-      totalMatches: parseInt(row.totalMatches, 10),
-      wins: parseInt(row.wins, 10),
-      losses: parseInt(row.losses, 10),
-      ties: parseInt(row.ties, 10),
+      steamId: stats.steam_id,
+      name: stats.name,
+      totalMatches,
+      wins: stats.wins,
+      losses: stats.losses,
+      ties: stats.ties,
       winRate:
-        row.totalMatches > 0
-          ? parseFloat(((row.wins / row.totalMatches) * 100).toFixed(2))
+        totalMatches > 0
+          ? parseFloat(((stats.wins / totalMatches) * 100).toFixed(2))
           : 0,
-      totalKills: parseInt(row.totalKills, 10),
-      totalDeaths: parseInt(row.totalDeaths, 10),
-      totalAssists: parseInt(row.totalAssists, 10),
+      totalKills,
+      totalDeaths,
+      totalAssists: stats.total_assists,
       kd:
-        row.totalDeaths > 0
-          ? parseFloat((row.totalKills / row.totalDeaths).toFixed(2))
-          : row.totalKills,
-      adr: parseFloat(row.adr) || 0,
-      headshotPercentage: parseFloat(row.headshotPercentage) || 0,
-      totalMvps: parseInt(row.totalMvps, 10),
+        totalDeaths > 0
+          ? parseFloat((totalKills / totalDeaths).toFixed(2))
+          : totalKills,
+      adr: parseFloat(stats.adr.toFixed(2)),
+      headshotPercentage: parseFloat(stats.headshot_percentage.toFixed(2)),
+      totalMvps: stats.total_mvps,
     };
   }
 
@@ -65,63 +57,42 @@ export class PlayerService {
     steamId: string,
     pagination: PaginationParams,
   ): Promise<PaginatedResponse<PlayerMatchStats>> {
-    const offset = (pagination.page - 1) * pagination.limit;
-
-    // Get total count
-    const countResult = await query<{ count: string }>(
-      `SELECT COUNT(*) as count FROM stats.player_matches WHERE steam_id = $1`,
-      [steamId],
-    );
-    const total = parseInt(countResult.rows[0].count, 10);
+    const allMatches = fileStore.getPlayerMatchesBySteamId(steamId);
+    const total = allMatches.length;
 
     if (total === 0) {
       throw new NotFoundError("Player");
     }
 
-    // Get paginated matches
-    const result = await query<any>(
-      `SELECT
-        pm.match_id as "matchId",
-        pm.steam_id as "steamId",
-        pm.name,
-        pm.team,
-        pm.kills,
-        pm.deaths,
-        pm.assists,
-        pm.adr,
-        pm.headshots,
-        ROUND(100.0 * pm.headshots / NULLIF(pm.kills, 0), 2) as "headshotPercentage",
-        pm.mvps,
-        pm.score,
-        pm.result,
-        m.map,
-        m.played_at as "playedAt"
-      FROM stats.player_matches pm
-      JOIN stats.matches m ON pm.match_id = m.match_id
-      WHERE pm.steam_id = $1
-      ORDER BY m.played_at DESC
-      LIMIT $2 OFFSET $3`,
-      [steamId, pagination.limit, offset],
+    const offset = (pagination.page - 1) * pagination.limit;
+    const paginatedMatches = allMatches.slice(
+      offset,
+      offset + pagination.limit,
     );
 
+    const items: PlayerMatchStats[] = paginatedMatches.map((row) => ({
+      matchId: row.match_id,
+      steamId: row.steam_id,
+      name: row.name,
+      team: row.team,
+      kills: row.kills,
+      deaths: row.deaths,
+      assists: row.assists,
+      adr: row.adr,
+      headshots: row.headshots,
+      headshotPercentage:
+        row.kills > 0
+          ? Math.round((row.headshots / row.kills) * 100 * 100) / 100
+          : 0,
+      mvps: row.mvps,
+      score: row.score,
+      result: row.result,
+      map: row.map,
+      playedAt: row.played_at,
+    }));
+
     return {
-      items: result.rows.map((row: any) => ({
-        matchId: row.matchId,
-        steamId: row.steamId,
-        name: row.name,
-        team: row.team,
-        kills: row.kills,
-        deaths: row.deaths,
-        assists: row.assists,
-        adr: parseFloat(row.adr),
-        headshots: row.headshots,
-        headshotPercentage: parseFloat(row.headshotPercentage) || 0,
-        mvps: row.mvps,
-        score: row.score,
-        result: row.result,
-        map: row.map,
-        playedAt: row.playedAt,
-      })),
+      items,
       total,
       page: pagination.page,
       limit: pagination.limit,
@@ -131,72 +102,47 @@ export class PlayerService {
 
   // Get player's weapon stats
   async getPlayerWeapons(steamId: string): Promise<PlayerWeaponAggregate[]> {
-    const result = await query<any>(
-      `SELECT
-        ws.weapon,
-        SUM(ws.kills) as "totalKills",
-        SUM(ws.headshots) as "totalHeadshots",
-        ROUND(100.0 * SUM(ws.headshots) / NULLIF(SUM(ws.kills), 0), 2) as "headshotPercentage",
-        SUM(ws.damage) as "totalDamage",
-        SUM(ws.shots) as "totalShots",
-        SUM(ws.hits) as "totalHits",
-        ROUND(100.0 * SUM(ws.hits) / NULLIF(SUM(ws.shots), 0), 2) as accuracy,
-        COUNT(DISTINCT ws.match_id) as "matchesUsed"
-      FROM stats.weapon_stats ws
-      WHERE ws.steam_id = $1
-      GROUP BY ws.weapon
-      ORDER BY "totalKills" DESC`,
-      [steamId],
-    );
+    const weaponRecords = fileStore.getWeaponStatsBySteamId(steamId);
 
-    return result.rows.map((row: any) => ({
+    return weaponRecords.map((row) => ({
       weapon: row.weapon,
-      totalKills: parseInt(row.totalKills, 10),
-      totalHeadshots: parseInt(row.totalHeadshots, 10),
-      headshotPercentage: parseFloat(row.headshotPercentage) || 0,
-      totalDamage: parseInt(row.totalDamage, 10),
-      totalShots: parseInt(row.totalShots, 10),
-      totalHits: parseInt(row.totalHits, 10),
-      accuracy: parseFloat(row.accuracy) || 0,
-      matchesUsed: parseInt(row.matchesUsed, 10),
+      totalKills: row.total_kills,
+      totalHeadshots: row.total_headshots,
+      headshotPercentage:
+        row.total_kills > 0
+          ? parseFloat(
+              ((row.total_headshots / row.total_kills) * 100).toFixed(2),
+            )
+          : 0,
+      totalDamage: row.total_damage,
+      totalShots: row.total_shots,
+      totalHits: row.total_hits,
+      accuracy:
+        row.total_shots > 0
+          ? parseFloat(((row.total_hits / row.total_shots) * 100).toFixed(2))
+          : 0,
+      matchesUsed: row.matches_used,
     }));
   }
 
   // Get player's performance by map
   async getPlayerMapStats(steamId: string): Promise<PlayerMapStats[]> {
-    const result = await query<any>(
-      `SELECT
-        m.map,
-        COUNT(*) as matches,
-        SUM(CASE WHEN pm.result = 'WIN' THEN 1 ELSE 0 END) as wins,
-        SUM(CASE WHEN pm.result = 'LOSS' THEN 1 ELSE 0 END) as losses,
-        SUM(CASE WHEN pm.result = 'TIE' THEN 1 ELSE 0 END) as ties,
-        ROUND(AVG(pm.kills)::numeric, 2) as "avgKills",
-        ROUND(AVG(pm.deaths)::numeric, 2) as "avgDeaths",
-        ROUND(AVG(pm.adr)::numeric, 2) as "avgAdr",
-        ROUND(100.0 * SUM(pm.headshots) / NULLIF(SUM(pm.kills), 0), 2) as "headshotPercentage"
-      FROM stats.player_matches pm
-      JOIN stats.matches m ON pm.match_id = m.match_id
-      WHERE pm.steam_id = $1
-      GROUP BY m.map
-      ORDER BY matches DESC`,
-      [steamId],
-    );
+    const mapRecords = fileStore.getPlayerMapStats(steamId);
 
-    return result.rows.map((row: any) => ({
+    return mapRecords.map((row) => ({
       map: row.map,
-      matches: parseInt(row.matches, 10),
-      wins: parseInt(row.wins, 10),
-      losses: parseInt(row.losses, 10),
-      ties: parseInt(row.ties, 10),
+      matches: row.matches,
+      wins: row.wins,
+      losses: row.losses,
+      ties: row.ties,
       winRate:
         row.matches > 0
           ? parseFloat(((row.wins / row.matches) * 100).toFixed(2))
           : 0,
-      avgKills: parseFloat(row.avgKills),
-      avgDeaths: parseFloat(row.avgDeaths),
-      avgAdr: parseFloat(row.avgAdr),
-      headshotPercentage: parseFloat(row.headshotPercentage) || 0,
+      avgKills: parseFloat(row.avg_kills.toFixed(2)),
+      avgDeaths: parseFloat(row.avg_deaths.toFixed(2)),
+      avgAdr: parseFloat(row.avg_adr.toFixed(2)),
+      headshotPercentage: parseFloat(row.headshot_percentage.toFixed(2)),
     }));
   }
 }

@@ -2,6 +2,7 @@ import { Router } from "express";
 import playerRoutes from "./player.routes";
 import matchRoutes from "./match.routes";
 import flashRoutes from "./flash.routes";
+import sentimentRoutes from "./sentiment.routes";
 
 const router = Router();
 
@@ -14,5 +15,6 @@ router.get("/health", (req, res) => {
 router.use("/api/players", playerRoutes);
 router.use("/api/matches", matchRoutes);
 router.use("/api/flashes", flashRoutes);
+router.use("/api/sentiment", sentimentRoutes);
 
 export default router;
