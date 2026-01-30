@@ -4,3 +4,6 @@ demos/
 *.dem
 *.dem.bz2
 stattrakServer/.env.example
+
+# Local file-based tables (temporary PostgreSQL workaround)
+tables/
