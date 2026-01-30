@@ -20,3 +20,4 @@ __exportStar(require("./round.model"), exports);
 __exportStar(require("./kill.model"), exports);
 __exportStar(require("./weapon.model"), exports);
 __exportStar(require("./flash.model"), exports);
+__exportStar(require("./sentiment.model"), exports);

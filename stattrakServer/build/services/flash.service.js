@@ -3,6 +3,7 @@
  * Flash Statistics Service
  * ========================
  * Database queries for flashbang statistics.
+ * Currently using file-based storage as a PostgreSQL workaround.
  */
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
@@ -15,7 +16,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.flashService = exports.FlashService = void 0;
-const pool_1 = require("../database/pool");
+const file_store_1 = require("../database/file-store");
 const errors_1 = require("../utils/errors");
 class FlashService {
     /**
@@ -23,39 +24,25 @@ class FlashService {
      */
     getMatchFlashStats(matchId) {
         return __awaiter(this, void 0, void 0, function* () {
-            // Verify match exists and get match info
-            const matchResult = yield (0, pool_1.query)(`SELECT match_id, map, played_at FROM stats.matches WHERE match_id = $1`, [matchId]);
-            if (matchResult.rows.length === 0) {
+            // Verify match exists
+            const match = file_store_1.fileStore.getMatchById(matchId);
+            if (!match) {
                 throw new errors_1.NotFoundError("Match");
             }
             // Get flash stats for all players in the match
-            const flashResult = yield (0, pool_1.query)(`SELECT
-        match_id as "matchId",
-        steam_id as "steamId",
-        name,
-        team,
-        enemies_flashed as "enemiesFlashed",
-        enemy_blind_duration as "enemyBlindDuration",
-        teammates_flashed as "teammatesFlashed",
-        team_blind_duration as "teamBlindDuration",
-        self_flashes as "selfFlashes",
-        self_blind_duration as "selfBlindDuration",
-        flashes_thrown as "flashesThrown"
-      FROM stats.flash_stats
-      WHERE match_id = $1
-      ORDER BY teammates_flashed DESC`, [matchId]);
-            const players = flashResult.rows.map((row) => ({
-                matchId: row.matchId,
-                steamId: row.steamId,
+            const flashRecords = file_store_1.fileStore.getFlashStatsByMatchId(matchId);
+            const players = flashRecords.map((row) => ({
+                matchId: row.match_id,
+                steamId: row.steam_id,
                 name: row.name,
                 team: row.team,
-                enemiesFlashed: row.enemiesFlashed,
-                enemyBlindDuration: parseFloat(row.enemyBlindDuration),
-                teammatesFlashed: row.teammatesFlashed,
-                teamBlindDuration: parseFloat(row.teamBlindDuration),
-                selfFlashes: row.selfFlashes,
-                selfBlindDuration: parseFloat(row.selfBlindDuration),
-                flashesThrown: row.flashesThrown,
+                enemiesFlashed: row.enemies_flashed || 0,
+                enemyBlindDuration: parseFloat((row.enemy_blind_duration || 0).toFixed(2)),
+                teammatesFlashed: row.teammates_flashed || 0,
+                teamBlindDuration: parseFloat((row.team_blind_duration || 0).toFixed(2)),
+                selfFlashes: row.self_flashes || 0,
+                selfBlindDuration: parseFloat((row.self_blind_duration || 0).toFixed(2)),
+                flashesThrown: row.flashes_thrown || 0,
             }));
             // Find worst team flasher and best flasher
             const worstTeamFlasher = players.length > 0
@@ -65,9 +52,9 @@ class FlashService {
                 ? players.reduce((max, p) => p.enemiesFlashed > max.enemiesFlashed ? p : max).name
                 : "";
             return {
-                matchId: matchResult.rows[0].match_id,
-                map: matchResult.rows[0].map,
-                playedAt: matchResult.rows[0].played_at,
+                matchId: match.match_id,
+                map: match.map,
+                playedAt: match.played_at || match.created_at,
                 players,
                 worstTeamFlasher,
                 bestFlasher,
@@ -79,39 +66,25 @@ class FlashService {
      */
     getPlayerFlashStats(steamId) {
         return __awaiter(this, void 0, void 0, function* () {
-            const result = yield (0, pool_1.query)(`SELECT
-        fs.steam_id as "steamId",
-        fs.name,
-        COUNT(DISTINCT fs.match_id) as "totalMatches",
-        SUM(fs.enemies_flashed) as "totalEnemiesFlashed",
-        SUM(fs.enemy_blind_duration) as "totalEnemyBlindDuration",
-        SUM(fs.teammates_flashed) as "totalTeammatesFlashed",
-        SUM(fs.team_blind_duration) as "totalTeamBlindDuration",
-        SUM(fs.self_flashes) as "totalSelfFlashes",
-        SUM(fs.self_blind_duration) as "totalSelfBlindDuration",
-        SUM(fs.flashes_thrown) as "totalFlashesThrown"
-      FROM stats.flash_stats fs
-      WHERE fs.steam_id = $1
-      GROUP BY fs.steam_id, fs.name`, [steamId]);
-            if (result.rows.length === 0) {
+            const stats = file_store_1.fileStore.getFlashStatsBySteamId(steamId);
+            if (!stats) {
                 throw new errors_1.NotFoundError("Player flash stats");
             }
-            const row = result.rows[0];
-            const totalMatches = parseInt(row.totalMatches, 10);
-            const totalEnemiesFlashed = parseInt(row.totalEnemiesFlashed, 10);
-            const totalTeammatesFlashed = parseInt(row.totalTeammatesFlashed, 10);
-            const totalFlashesThrown = parseInt(row.totalFlashesThrown, 10);
+            const totalMatches = stats.total_matches;
+            const totalEnemiesFlashed = stats.total_enemies_flashed;
+            const totalTeammatesFlashed = stats.total_teammates_flashed;
+            const totalFlashesThrown = stats.total_flashes_thrown;
             const totalPeopleFlashed = totalEnemiesFlashed + totalTeammatesFlashed;
             return {
-                steamId: row.steamId,
-                name: row.name,
+                steamId: stats.steam_id,
+                name: stats.name,
                 totalMatches,
                 totalEnemiesFlashed,
-                totalEnemyBlindDuration: parseFloat(row.totalEnemyBlindDuration),
+                totalEnemyBlindDuration: parseFloat(stats.total_enemy_blind_duration.toFixed(2)),
                 totalTeammatesFlashed,
-                totalTeamBlindDuration: parseFloat(row.totalTeamBlindDuration),
-                totalSelfFlashes: parseInt(row.totalSelfFlashes, 10),
-                totalSelfBlindDuration: parseFloat(row.totalSelfBlindDuration),
+                totalTeamBlindDuration: parseFloat(stats.total_team_blind_duration.toFixed(2)),
+                totalSelfFlashes: stats.total_self_flashes,
+                totalSelfBlindDuration: parseFloat(stats.total_self_blind_duration.toFixed(2)),
                 totalFlashesThrown,
                 avgEnemiesFlashedPerMatch: totalMatches > 0
                     ? parseFloat((totalEnemiesFlashed / totalMatches).toFixed(2))
@@ -134,30 +107,18 @@ class FlashService {
      */
     getTeamFlashLeaderboard(pagination) {
         return __awaiter(this, void 0, void 0, function* () {
+            const allEntries = file_store_1.fileStore.getTeamFlashLeaderboard();
+            const total = allEntries.length;
             const offset = (pagination.page - 1) * pagination.limit;
-            // Get total count of players with flash stats
-            const countResult = yield (0, pool_1.query)(`SELECT COUNT(DISTINCT steam_id) as count FROM stats.flash_stats`);
-            const total = parseInt(countResult.rows[0].count, 10);
-            // Get leaderboard
-            const result = yield (0, pool_1.query)(`SELECT
-        fs.steam_id as "steamId",
-        fs.name,
-        SUM(fs.teammates_flashed) as "totalTeammatesFlashed",
-        SUM(fs.team_blind_duration) as "totalTeamBlindDuration",
-        COUNT(DISTINCT fs.match_id) as "matchCount"
-      FROM stats.flash_stats fs
-      GROUP BY fs.steam_id, fs.name
-      HAVING SUM(fs.teammates_flashed) > 0
-      ORDER BY "totalTeammatesFlashed" DESC
-      LIMIT $1 OFFSET $2`, [pagination.limit, offset]);
-            const items = result.rows.map((row) => {
-                const matchCount = parseInt(row.matchCount, 10);
-                const totalTeammatesFlashed = parseInt(row.totalTeammatesFlashed, 10);
+            const paginatedEntries = allEntries.slice(offset, offset + pagination.limit);
+            const items = paginatedEntries.map((row) => {
+                const matchCount = row.match_count;
+                const totalTeammatesFlashed = row.total_teammates_flashed;
                 return {
-                    steamId: row.steamId,
+                    steamId: row.steam_id,
                     name: row.name,
                     totalTeammatesFlashed,
-                    totalTeamBlindDuration: parseFloat(row.totalTeamBlindDuration),
+                    totalTeamBlindDuration: parseFloat(row.total_team_blind_duration.toFixed(2)),
                     matchCount,
                     avgTeamFlashesPerMatch: matchCount > 0
                         ? parseFloat((totalTeammatesFlashed / matchCount).toFixed(2))
@@ -179,28 +140,18 @@ class FlashService {
      */
     getEnemyFlashLeaderboard(pagination) {
         return __awaiter(this, void 0, void 0, function* () {
+            const allEntries = file_store_1.fileStore.getEnemyFlashLeaderboard();
+            const total = allEntries.length;
             const offset = (pagination.page - 1) * pagination.limit;
-            const countResult = yield (0, pool_1.query)(`SELECT COUNT(DISTINCT steam_id) as count FROM stats.flash_stats WHERE enemies_flashed > 0`);
-            const total = parseInt(countResult.rows[0].count, 10);
-            const result = yield (0, pool_1.query)(`SELECT
-        fs.steam_id as "steamId",
-        fs.name,
-        SUM(fs.enemies_flashed) as "totalEnemiesFlashed",
-        SUM(fs.enemy_blind_duration) as "totalEnemyBlindDuration",
-        COUNT(DISTINCT fs.match_id) as "matchCount"
-      FROM stats.flash_stats fs
-      GROUP BY fs.steam_id, fs.name
-      HAVING SUM(fs.enemies_flashed) > 0
-      ORDER BY "totalEnemiesFlashed" DESC
-      LIMIT $1 OFFSET $2`, [pagination.limit, offset]);
-            const items = result.rows.map((row) => {
-                const matchCount = parseInt(row.matchCount, 10);
-                const totalEnemiesFlashed = parseInt(row.totalEnemiesFlashed, 10);
+            const paginatedEntries = allEntries.slice(offset, offset + pagination.limit);
+            const items = paginatedEntries.map((row) => {
+                const matchCount = row.match_count;
+                const totalEnemiesFlashed = row.total_enemies_flashed;
                 return {
-                    steamId: row.steamId,
+                    steamId: row.steam_id,
                     name: row.name,
                     totalTeammatesFlashed: totalEnemiesFlashed, // Reusing interface
-                    totalTeamBlindDuration: parseFloat(row.totalEnemyBlindDuration),
+                    totalTeamBlindDuration: parseFloat(row.total_enemy_blind_duration.toFixed(2)),
                     matchCount,
                     avgTeamFlashesPerMatch: matchCount > 0
                         ? parseFloat((totalEnemiesFlashed / matchCount).toFixed(2))
