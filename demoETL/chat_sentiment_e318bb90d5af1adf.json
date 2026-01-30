@@ -1,0 +1,481 @@
+{
+  "match_id": "e318bb90d5af1adf",
+  "total_messages": 30,
+  "overall_sentiment": {
+    "positive": 0.33,
+    "negative": 0.19,
+    "neutral": 0.395,
+    "mixed": 0.085,
+    "dominant": "NEUTRAL"
+  },
+  "toxicity_score": 3.3,
+  "most_toxic_player": null,
+  "most_positive_player": "76561199059873622",
+  "analyzed_at": "2026-01-30T17:21:25.295961",
+  "player_sentiments": [
+    {
+      "steam_id": "76561198057593314",
+      "player_name": "IEM25_Applicant",
+      "message_count": 10,
+      "avg_positive": 0.34,
+      "avg_negative": 0.22,
+      "avg_neutral": 0.36,
+      "avg_mixed": 0.08,
+      "dominant_sentiment": "NEUTRAL",
+      "most_negative_message": "kick snakelord27 or racist",
+      "most_positive_message": "i dont make the rules"
+    },
+    {
+      "steam_id": "76561199075687021",
+      "player_name": "snakelord27",
+      "message_count": 14,
+      "avg_positive": 0.307,
+      "avg_negative": 0.179,
+      "avg_neutral": 0.425,
+      "avg_mixed": 0.089,
+      "dominant_sentiment": "NEUTRAL",
+      "most_negative_message": null,
+      "most_positive_message": "bro its a country "
+    },
+    {
+      "steam_id": "76561199218416418",
+      "player_name": "cox",
+      "message_count": 3,
+      "avg_positive": 0.367,
+      "avg_negative": 0.167,
+      "avg_neutral": 0.383,
+      "avg_mixed": 0.083,
+      "dominant_sentiment": "NEUTRAL",
+      "most_negative_message": null,
+      "most_positive_message": "gg"
+    },
+    {
+      "steam_id": "76561198116400784",
+      "player_name": "Jdub",
+      "message_count": 1,
+      "avg_positive": 0.2,
+      "avg_negative": 0.2,
+      "avg_neutral": 0.5,
+      "avg_mixed": 0.1,
+      "dominant_sentiment": "NEUTRAL",
+      "most_negative_message": null,
+      "most_positive_message": null
+    },
+    {
+      "steam_id": "76561198164510006",
+      "player_name": "*Vollgaser*",
+      "message_count": 1,
+      "avg_positive": 0.2,
+      "avg_negative": 0.2,
+      "avg_neutral": 0.5,
+      "avg_mixed": 0.1,
+      "dominant_sentiment": "NEUTRAL",
+      "most_negative_message": null,
+      "most_positive_message": null
+    },
+    {
+      "steam_id": "76561199059873622",
+      "player_name": "ygsleepytime",
+      "message_count": 1,
+      "avg_positive": 0.7,
+      "avg_negative": 0.1,
+      "avg_neutral": 0.15,
+      "avg_mixed": 0.05,
+      "dominant_sentiment": "POSITIVE",
+      "most_negative_message": null,
+      "most_positive_message": "gg"
+    }
+  ],
+  "message_sentiments": [
+    {
+      "tick": 37092,
+      "steam_id": "76561198057593314",
+      "player_name": "IEM25_Applicant",
+      "message": "sit down little one",
+      "sentiment": {
+        "positive": 0.2,
+        "negative": 0.2,
+        "neutral": 0.5,
+        "mixed": 0.1,
+        "dominant": "NEUTRAL"
+      }
+    },
+    {
+      "tick": 37542,
+      "steam_id": "76561199075687021",
+      "player_name": "snakelord27",
+      "message": "sit down kike\\",
+      "sentiment": {
+        "positive": 0.2,
+        "negative": 0.2,
+        "neutral": 0.5,
+        "mixed": 0.1,
+        "dominant": "NEUTRAL"
+      }
+    },
+    {
+      "tick": 57910,
+      "steam_id": "76561198057593314",
+      "player_name": "IEM25_Applicant",
+      "message": "stinky palace rat sit down",
+      "sentiment": {
+        "positive": 0.2,
+        "negative": 0.2,
+        "neutral": 0.5,
+        "mixed": 0.1,
+        "dominant": "NEUTRAL"
+      }
+    },
+    {
+      "tick": 58862,
+      "steam_id": "76561199075687021",
+      "player_name": "snakelord27",
+      "message": "N",
+      "sentiment": {
+        "positive": 0.2,
+        "negative": 0.2,
+        "neutral": 0.5,
+        "mixed": 0.1,
+        "dominant": "NEUTRAL"
+      }
+    },
+    {
+      "tick": 58941,
+      "steam_id": "76561199075687021",
+      "player_name": "snakelord27",
+      "message": "I",
+      "sentiment": {
+        "positive": 0.2,
+        "negative": 0.2,
+        "neutral": 0.5,
+        "mixed": 0.1,
+        "dominant": "NEUTRAL"
+      }
+    },
+    {
+      "tick": 59069,
+      "steam_id": "76561199075687021",
+      "player_name": "snakelord27",
+      "message": "G",
+      "sentiment": {
+        "positive": 0.2,
+        "negative": 0.2,
+        "neutral": 0.5,
+        "mixed": 0.1,
+        "dominant": "NEUTRAL"
+      }
+    },
+    {
+      "tick": 59261,
+      "steam_id": "76561199075687021",
+      "player_name": "snakelord27",
+      "message": "E",
+      "sentiment": {
+        "positive": 0.2,
+        "negative": 0.2,
+        "neutral": 0.5,
+        "mixed": 0.1,
+        "dominant": "NEUTRAL"
+      }
+    },
+    {
+      "tick": 59323,
+      "steam_id": "76561199075687021",
+      "player_name": "snakelord27",
+      "message": "R",
+      "sentiment": {
+        "positive": 0.2,
+        "negative": 0.2,
+        "neutral": 0.5,
+        "mixed": 0.1,
+        "dominant": "NEUTRAL"
+      }
+    },
+    {
+      "tick": 59482,
+      "steam_id": "76561199075687021",
+      "player_name": "snakelord27",
+      "message": "I",
+      "sentiment": {
+        "positive": 0.2,
+        "negative": 0.2,
+        "neutral": 0.5,
+        "mixed": 0.1,
+        "dominant": "NEUTRAL"
+      }
+    },
+    {
+      "tick": 59545,
+      "steam_id": "76561199075687021",
+      "player_name": "snakelord27",
+      "message": "A",
+      "sentiment": {
+        "positive": 0.2,
+        "negative": 0.2,
+        "neutral": 0.5,
+        "mixed": 0.1,
+        "dominant": "NEUTRAL"
+      }
+    },
+    {
+      "tick": 59848,
+      "steam_id": "76561199218416418",
+      "player_name": "cox",
+      "message": "lmao",
+      "sentiment": {
+        "positive": 0.2,
+        "negative": 0.2,
+        "neutral": 0.5,
+        "mixed": 0.1,
+        "dominant": "NEUTRAL"
+      }
+    },
+    {
+      "tick": 60949,
+      "steam_id": "76561198057593314",
+      "player_name": "IEM25_Applicant",
+      "message": "kick snakelord27 or racist",
+      "sentiment": {
+        "positive": 0.1,
+        "negative": 0.7,
+        "neutral": 0.15,
+        "mixed": 0.05,
+        "dominant": "NEGATIVE"
+      }
+    },
+    {
+      "tick": 61365,
+      "steam_id": "76561198057593314",
+      "player_name": "IEM25_Applicant",
+      "message": "i dont make the rules",
+      "sentiment": {
+        "positive": 0.7,
+        "negative": 0.1,
+        "neutral": 0.15,
+        "mixed": 0.05,
+        "dominant": "POSITIVE"
+      }
+    },
+    {
+      "tick": 61464,
+      "steam_id": "76561198116400784",
+      "player_name": "Jdub",
+      "message": "guess im racist",
+      "sentiment": {
+        "positive": 0.2,
+        "negative": 0.2,
+        "neutral": 0.5,
+        "mixed": 0.1,
+        "dominant": "NEUTRAL"
+      }
+    },
+    {
+      "tick": 61711,
+      "steam_id": "76561199075687021",
+      "player_name": "snakelord27",
+      "message": "bro its a country ",
+      "sentiment": {
+        "positive": 0.7,
+        "negative": 0.1,
+        "neutral": 0.15,
+        "mixed": 0.05,
+        "dominant": "POSITIVE"
+      }
+    },
+    {
+      "tick": 72224,
+      "steam_id": "76561198057593314",
+      "player_name": "IEM25_Applicant",
+      "message": "GH",
+      "sentiment": {
+        "positive": 0.2,
+        "negative": 0.2,
+        "neutral": 0.5,
+        "mixed": 0.1,
+        "dominant": "NEUTRAL"
+      }
+    },
+    {
+      "tick": 73117,
+      "steam_id": "76561199075687021",
+      "player_name": "snakelord27",
+      "message": "bh",
+      "sentiment": {
+        "positive": 0.2,
+        "negative": 0.2,
+        "neutral": 0.5,
+        "mixed": 0.1,
+        "dominant": "NEUTRAL"
+      }
+    },
+    {
+      "tick": 73802,
+      "steam_id": "76561198057593314",
+      "player_name": "IEM25_Applicant",
+      "message": "quiet maam",
+      "sentiment": {
+        "positive": 0.2,
+        "negative": 0.2,
+        "neutral": 0.5,
+        "mixed": 0.1,
+        "dominant": "NEUTRAL"
+      }
+    },
+    {
+      "tick": 77697,
+      "steam_id": "76561199218416418",
+      "player_name": "cox",
+      "message": "2 hp",
+      "sentiment": {
+        "positive": 0.2,
+        "negative": 0.2,
+        "neutral": 0.5,
+        "mixed": 0.1,
+        "dominant": "NEUTRAL"
+      }
+    },
+    {
+      "tick": 81960,
+      "steam_id": "76561198057593314",
+      "player_name": "IEM25_Applicant",
+      "message": "snakelord27.....",
+      "sentiment": {
+        "positive": 0.2,
+        "negative": 0.2,
+        "neutral": 0.5,
+        "mixed": 0.1,
+        "dominant": "NEUTRAL"
+      }
+    },
+    {
+      "tick": 82560,
+      "steam_id": "76561198057593314",
+      "player_name": "IEM25_Applicant",
+      "message": "what are we going to do with you",
+      "sentiment": {
+        "positive": 0.2,
+        "negative": 0.2,
+        "neutral": 0.5,
+        "mixed": 0.1,
+        "dominant": "NEUTRAL"
+      }
+    },
+    {
+      "tick": 82752,
+      "steam_id": "76561199075687021",
+      "player_name": "snakelord27",
+      "message": "IEM25_Applicant\u200e: quiet maam",
+      "sentiment": {
+        "positive": 0.7,
+        "negative": 0.1,
+        "neutral": 0.15,
+        "mixed": 0.05,
+        "dominant": "POSITIVE"
+      }
+    },
+    {
+      "tick": 106590,
+      "steam_id": "76561199075687021",
+      "player_name": "snakelord27",
+      "message": "SIGMA SIGMA BOY SIGMA BOY",
+      "sentiment": {
+        "positive": 0.2,
+        "negative": 0.2,
+        "neutral": 0.5,
+        "mixed": 0.1,
+        "dominant": "NEUTRAL"
+      }
+    },
+    {
+      "tick": 118060,
+      "steam_id": "76561199075687021",
+      "player_name": "snakelord27",
+      "message": "brady williuam mccann just lied toh is mom about hw ",
+      "sentiment": {
+        "positive": 0.2,
+        "negative": 0.2,
+        "neutral": 0.5,
+        "mixed": 0.1,
+        "dominant": "NEUTRAL"
+      }
+    },
+    {
+      "tick": 126415,
+      "steam_id": "76561199075687021",
+      "player_name": "snakelord27",
+      "message": "good job blow job",
+      "sentiment": {
+        "positive": 0.7,
+        "negative": 0.1,
+        "neutral": 0.15,
+        "mixed": 0.05,
+        "dominant": "POSITIVE"
+      }
+    },
+    {
+      "tick": 135176,
+      "steam_id": "76561199218416418",
+      "player_name": "cox",
+      "message": "gg",
+      "sentiment": {
+        "positive": 0.7,
+        "negative": 0.1,
+        "neutral": 0.15,
+        "mixed": 0.05,
+        "dominant": "POSITIVE"
+      }
+    },
+    {
+      "tick": 150420,
+      "steam_id": "76561198164510006",
+      "player_name": "*Vollgaser*",
+      "message": "?",
+      "sentiment": {
+        "positive": 0.2,
+        "negative": 0.2,
+        "neutral": 0.5,
+        "mixed": 0.1,
+        "dominant": "NEUTRAL"
+      }
+    },
+    {
+      "tick": 150472,
+      "steam_id": "76561198057593314",
+      "player_name": "IEM25_Applicant",
+      "message": "GG",
+      "sentiment": {
+        "positive": 0.7,
+        "negative": 0.1,
+        "neutral": 0.15,
+        "mixed": 0.05,
+        "dominant": "POSITIVE"
+      }
+    },
+    {
+      "tick": 150542,
+      "steam_id": "76561199059873622",
+      "player_name": "ygsleepytime",
+      "message": "gg",
+      "sentiment": {
+        "positive": 0.7,
+        "negative": 0.1,
+        "neutral": 0.15,
+        "mixed": 0.05,
+        "dominant": "POSITIVE"
+      }
+    },
+    {
+      "tick": 150709,
+      "steam_id": "76561198057593314",
+      "player_name": "IEM25_Applicant",
+      "message": "snakelord27\u200e: IEM25_Applicant\u200e: quiet maam",
+      "sentiment": {
+        "positive": 0.7,
+        "negative": 0.1,
+        "neutral": 0.15,
+        "mixed": 0.05,
+        "dominant": "POSITIVE"
+      }
+    }
+  ]
+}
