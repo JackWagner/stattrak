@@ -4,11 +4,33 @@ import os
 import bz2, shutil
 import logging as logger
 import subprocess
-import match_stats
 from demoparser2 import DemoParser
 
 URL_REGEX  = r'^http://replay115.valve.net/730/\w{32}.dem.bz2'
 FILE_REGEX = r'^\w{32}.dem.bz2$'
+
+def get_team_flashed_by_player(demoparser):
+    # Get team number by player
+    team_df = demoparser.parse_event("player_team")[['team','user_steamid']].set_index('user_steamid')
+
+    # get all flashbang events and filter out warmup
+    all_flashed_events_df = demoparser.parse_event("player_blind", other=["is_warmup_period"])
+    flashed_events_df     = all_flashed_events_df[all_flashed_events_df["is_warmup_period"] == False]
+
+    # Join in the flashee team and flasher team sequentially
+    flashes_w_user_team_df = flashed_events_df.merge(team_df, on='user_steamid')
+    flashes_w_both_team_df = flashes_w_user_team_df.merge(team_df, left_on='attacker_steamid', right_on='user_steamid', suffixes=['_user','_attacker'])
+
+    # Filter to where flashee team and flasher team are the same
+    team_flashes_df = flashes_w_both_team_df[flashes_w_both_team_df["team_user"]==flashes_w_both_team_df["team_attacker"]]
+
+    #print(team_flashes_df)
+
+    # Aggregate and sort by team
+    team_flash_leaderboard_df = team_flashes_df[['attacker_name','team_attacker','blind_duration']].groupby(['attacker_name','team_attacker']).agg(['count','sum'])
+    #print(team_flash_leaderboard_df)
+    print(team_flash_leaderboard_df.sort_values(by=[('blind_duration','count')], ascending=False))
+    return team_flash_leaderboard_df
 
 class Demo():
     def __init__(self, url:str):
@@ -18,8 +40,6 @@ class Demo():
         self.is_decompressed = False
         self.is_stored_in_db = False
         self.is_deleted      = False
-
-        self.stat_df_list    = []
 
     def download(self, out_dir:str='demos'):
         """
@@ -104,15 +124,10 @@ class Demo():
             logger.error(f'File from {self.url} has either not been decompressed or downloaded')
             raise
         
-        # Get match stat DFs
-        self.stat_df_list.append(match_stats.get_team_flashed_by_player(self.demo_parser))
-        # Join together and get stat json
-        merged_stat_df = match_stats.get_merged_stat_df(self.stat_df_list)
-        stat_json_list = match_stats.get_stat_json_list(merged_stat_df)
+        get_team_flashed_by_player(self.demo_parser)
         #insert info here
-        self.is_stored_in_db = True
 
-        return stat_json_list
+        self.is_stored_in_db = True
 
     def delete(self):
         """
@@ -137,7 +152,6 @@ class Demo():
         self.download()
         self.decompress()
         self.get_parser()
-        stat_json_list = self.store_data_in_db()
+        self.store_data_in_db()
         self.delete()
         logger.info(f'Finished processing {self.url}')
-        return stat_json_list

@@ -1,11 +1,10 @@
-from steam.client   import SteamClient
-from csgo.client    import CSGOClient
-from csgo.sharecode import decode
-from match_stats    import get_outlier_stat_message
-from json           import load
-from db_utils       import Connect
-from demo           import Demo
-from time           import sleep
+from steam.client        import SteamClient
+from csgo.client         import CSGOClient
+from csgo.sharecode      import decode
+from json                import load
+from db_utils            import Connect
+from demo                import Demo
+from time                import sleep
 import logging as logger
 import os
 
@@ -146,10 +145,8 @@ def match_processing(df, match_decode):
     
     # Download, decompress, parse, store and delete Demo
     try:
-        demo  = Demo(demo_url)
-        stat_json_list = demo.process()
-        message = get_outlier_stat_message(stat_json_list)
-        client.get_user(steam_id).send_message(f'Processed match {match_share_code}')
+        demo = Demo(demo_url)
+        demo.process()
     except Exception as e:
         logger.error(e)
         logger.info(f'Failed to process {demo_url} sending to failed queue')

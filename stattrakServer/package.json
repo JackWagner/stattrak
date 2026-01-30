@@ -1,22 +1,32 @@
 {
   "name": "stattrakserver",
   "version": "1.0.0",
-  "description": "TS REST API for parsing Counter Strike 2 match data",
+  "description": "TS REST API for serving CS2 match statistics from PostgreSQL",
   "main": "./source/server.ts",
-  "author": "Jules Marecaux",
+  "author": "Jack Wagner",
   "license": "ISC",
   "scripts": {
     "dev": "nodemon source/server.ts",
-    "build": "rm -rf build/ && prettier --write source/ && tsc"
+    "build": "rm -rf build/ && prettier --write source/ && tsc",
+    "start": "node build/server.js"
   },
   "dependencies": {
-    "@laihoe/demoparser2": "^0.16.1",
-    "@types/axios": "^0.14.0",
+    "cors": "^2.8.5",
+    "dotenv": "^16.3.1",
+    "express": "^4.18.2",
+    "helmet": "^7.1.0",
+    "morgan": "^1.10.0",
+    "pg": "^8.11.3"
+  },
+  "devDependencies": {
+    "@types/cors": "^2.8.17",
     "@types/express": "^4.17.21",
     "@types/morgan": "^1.9.9",
-    "express": "^4.18.2",
-    "morgan": "^1.10.0",
+    "@types/node": "^20.10.0",
+    "@types/pg": "^8.10.9",
     "nodemon": "^3.0.2",
-    "ts-node": "^10.9.2"
+    "prettier": "^3.1.0",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.3.2"
   }
 }

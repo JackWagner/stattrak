@@ -1,36 +1,57 @@
-import http from 'http';
-import express, { Express } from 'express';
-import morgan from 'morgan';
-import routes from './routes/index';
+import http from "http";
+import express, { Express } from "express";
+import cors from "cors";
+import helmet from "helmet";
+import morgan from "morgan";
+import { config } from "./config";
+import routes from "./routes/index";
+import { notFoundHandler, errorHandler } from "./middleware/error.middleware";
+import { closePool } from "./database/pool";
 
-const router: Express = express();
+const app: Express = express();
 
-router.use(morgan('dev'));
-router.use(express.urlencoded({ extended: false}));
-router.use(express.json());
+// Security middleware
+app.use(helmet());
+app.use(
+  cors({
+    origin: config.corsOrigin,
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+  }),
+);
 
-router.use((req, res, next) => {
-    res.header('Access-Control-Allow-Origin', '*');
-    res.header('Access-Control-Allow-Headers', 'origin, X-Requested-With, Content-Type, Accept, Authorization');
-    if (req.method === 'OPTIONS') {
-        res.header('Access-Control-Allow-Methods', 'GET PATCH DELETE POST PUT');
-        return res.status(200).json({});
-    }
-    next();
+// Request logging
+app.use(morgan(config.nodeEnv === "development" ? "dev" : "combined"));
+
+// Body parsing
+app.use(express.urlencoded({ extended: false }));
+app.use(express.json());
+
+// Routes
+app.use("/", routes);
+
+// Error handling
+app.use(notFoundHandler);
+app.use(errorHandler);
+
+// Server
+const httpServer = http.createServer(app);
+
+httpServer.listen(config.port, () => {
+  console.log(
+    `Server running on port ${config.port} in ${config.nodeEnv} mode`,
+  );
 });
 
-/** Routes */
-router.use('/', routes);
+// Graceful shutdown
+const shutdown = async () => {
+  console.log("\nShutting down gracefully...");
+  httpServer.close(async () => {
+    await closePool();
+    console.log("Server closed");
+    process.exit(0);
+  });
+};
 
-/** Error handling */
-router.use((req, res, next) => {
-    const error = new Error('not found');
-    return res.status(404).json({
-        message: error.message
-    });
-});
-
-/** Server */
-const httpServer = http.createServer(router);
-const PORT: any = process.env.PORT ?? 8080;
-httpServer.listen(PORT, () => console.log(`The server is running on port ${PORT}`));
+process.on("SIGTERM", shutdown);
+process.on("SIGINT", shutdown);
