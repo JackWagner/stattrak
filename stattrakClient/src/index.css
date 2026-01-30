@@ -38,7 +38,8 @@
   --color-loss: #f44336;              /* Red for losses */
   --color-tie: #9e9e9e;               /* Gray for ties */
 
-  --color-accent: #ff9800;            /* Accent color (orange) */
+  --color-accent: #00bcd4;            /* Accent color (cyan) */
+  --color-accent-light: #4dd0e1;      /* Lighter accent for hover states */
   --color-link: #64b5f6;              /* Link color */
 
   /* Spacing */
@@ -142,7 +143,7 @@ a:hover {
 }
 
 .logo:hover {
-  color: var(--color-t-light);
+  color: var(--color-accent-light);
 }
 
 /* Navigation links container */
@@ -252,7 +253,7 @@ a:hover {
 }
 
 .retry-button:hover {
-  background-color: var(--color-t-light);
+  background-color: var(--color-accent-light);
 }
 
 /* Stat card */
@@ -330,7 +331,7 @@ a:hover {
 }
 
 .search-button:hover {
-  background-color: var(--color-t-light);
+  background-color: var(--color-accent-light);
 }
 
 /* -----------------------------------------------------------------------------
@@ -835,7 +836,7 @@ a:hover {
 }
 
 .not-found a:hover {
-  background-color: var(--color-t-light);
+  background-color: var(--color-accent-light);
 }
 
 /* -----------------------------------------------------------------------------

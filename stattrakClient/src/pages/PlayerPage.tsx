@@ -4,7 +4,6 @@
 // This page displays:
 // - Player's overall stats (K/D, win rate, etc.)
 // - Match history
-// - Weapon breakdown
 // - Map performance
 // =============================================================================
 
@@ -14,13 +13,11 @@ import { Layout, Loading, ErrorMessage, StatCard } from '../components';
 import {
   getPlayer,
   getPlayerMatches,
-  getPlayerWeapons,
   getPlayerMaps,
 } from '../services/api';
 import type {
   PlayerStats,
   PlayerMatchStats,
-  PlayerWeaponStats,
   PlayerMapStats,
 } from '../types';
 
@@ -38,13 +35,12 @@ function PlayerPage() {
   // ---------------------------------------------------------------------------
   const [player, setPlayer] = useState<PlayerStats | null>(null);
   const [matches, setMatches] = useState<PlayerMatchStats[]>([]);
-  const [weapons, setWeapons] = useState<PlayerWeaponStats[]>([]);
   const [maps, setMaps] = useState<PlayerMapStats[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Track which tab is active (matches, weapons, or maps)
-  const [activeTab, setActiveTab] = useState<'matches' | 'weapons' | 'maps'>('matches');
+  // Track which tab is active (matches or maps)
+  const [activeTab, setActiveTab] = useState<'matches' | 'maps'>('matches');
 
   // ---------------------------------------------------------------------------
   // EFFECT - Fetch player data
@@ -58,16 +54,14 @@ function PlayerPage() {
         setError(null);
 
         // Fetch all player data in parallel for speed
-        const [playerData, matchesData, weaponsData, mapsData] = await Promise.all([
+        const [playerData, matchesData, mapsData] = await Promise.all([
           getPlayer(steamId),
           getPlayerMatches(steamId, 1, 10),  // First 10 matches
-          getPlayerWeapons(steamId),
           getPlayerMaps(steamId),
         ]);
 
         setPlayer(playerData);
         setMatches(matchesData.data);
-        setWeapons(weaponsData);
         setMaps(mapsData);
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Failed to load player');
@@ -182,12 +176,6 @@ function PlayerPage() {
             Recent Matches
           </button>
           <button
-            className={`tab ${activeTab === 'weapons' ? 'active' : ''}`}
-            onClick={() => setActiveTab('weapons')}
-          >
-            Weapons
-          </button>
-          <button
             className={`tab ${activeTab === 'maps' ? 'active' : ''}`}
             onClick={() => setActiveTab('maps')}
           >
@@ -219,38 +207,6 @@ function PlayerPage() {
                 </div>
               ) : (
                 <p className="no-data">No matches found</p>
-              )}
-            </div>
-          )}
-
-          {/* Weapons Tab */}
-          {activeTab === 'weapons' && (
-            <div className="weapons-tab">
-              {weapons.length > 0 ? (
-                <table className="data-table">
-                  <thead>
-                    <tr>
-                      <th>Weapon</th>
-                      <th>Kills</th>
-                      <th>HS%</th>
-                      <th>Accuracy</th>
-                      <th>Matches</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {weapons.map((weapon) => (
-                      <tr key={weapon.weapon}>
-                        <td className="weapon-name">{weapon.weapon}</td>
-                        <td>{weapon.totalKills}</td>
-                        <td>{weapon.headshotPercentage.toFixed(1)}%</td>
-                        <td>{weapon.accuracy.toFixed(1)}%</td>
-                        <td>{weapon.matchesUsed}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              ) : (
-                <p className="no-data">No weapon data found</p>
               )}
             </div>
           )}

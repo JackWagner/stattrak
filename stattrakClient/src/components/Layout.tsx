@@ -54,9 +54,6 @@ function Layout({ children }: LayoutProps) {
             <Link to="/matches" className="nav-link">
               Matches
             </Link>
-            <Link to="/weapons" className="nav-link">
-              Weapons
-            </Link>
             <Link to="/flashes" className="nav-link">
               Flashes
             </Link>

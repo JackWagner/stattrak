@@ -17,7 +17,6 @@ import {
   MatchesPage,
   MatchDetailPage,
   PlayerPage,
-  WeaponsPage,
   FlashStatsPage,
 } from './pages';
 
@@ -61,13 +60,6 @@ function App() {
         Example: /players/76561198012345678
       */}
       <Route path="/players/:steamId" element={<PlayerPage />} />
-
-      {/*
-        WEAPONS PAGE
-        Path: /weapons
-        Shows global weapon statistics
-      */}
-      <Route path="/weapons" element={<WeaponsPage />} />
 
       {/*
         FLASH STATS PAGE
