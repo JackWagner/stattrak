@@ -111,8 +111,8 @@ class FileStorage:
         self._upsert_record('flash_stats', flash_data, ['match_id', 'steam_id'])
 
     def insert_chat_message(self, chat_data: Dict[str, Any]):
-        """Insert chat message."""
-        self._insert_record('chat_messages', chat_data)
+        """Insert chat message (upsert by match_id + tick + steam_id)."""
+        self._upsert_record('chat_messages', chat_data, ['match_id', 'tick', 'steam_id'])
 
     # =========================================================================
     # Query methods for reading data
