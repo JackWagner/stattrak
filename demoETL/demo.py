@@ -1,40 +1,37 @@
+"""
+Demo Processing Module
+======================
+Handles downloading, decompressing, and processing CS2 demo files.
+
+The actual stats extraction and database insertion is delegated to StatsInserter,
+which handles all stat types including flash stats.
+"""
+
 import wget
 import re
 import os
-import bz2, shutil
+import bz2
+import shutil
 import logging as logger
 import subprocess
 from demoparser2 import DemoParser
+from db_utils import Connect
+from stats_inserter import StatsInserter
 
-URL_REGEX  = r'^http://replay115.valve.net/730/\w{32}.dem.bz2'
+URL_REGEX = r'^http://replay115.valve.net/730/\w{32}.dem.bz2'
 FILE_REGEX = r'^\w{32}.dem.bz2$'
 
-def get_team_flashed_by_player(demoparser):
-    # Get team number by player
-    team_df = demoparser.parse_event("player_team")[['team','user_steamid']].set_index('user_steamid')
 
-    # get all flashbang events and filter out warmup
-    all_flashed_events_df = demoparser.parse_event("player_blind", other=["is_warmup_period"])
-    flashed_events_df     = all_flashed_events_df[all_flashed_events_df["is_warmup_period"] == False]
+class Demo:
+    def __init__(self, url: str, db: Connect = None):
+        """
+        Initialize a Demo object for processing CS2 demo files.
 
-    # Join in the flashee team and flasher team sequentially
-    flashes_w_user_team_df = flashed_events_df.merge(team_df, on='user_steamid')
-    flashes_w_both_team_df = flashes_w_user_team_df.merge(team_df, left_on='attacker_steamid', right_on='user_steamid', suffixes=['_user','_attacker'])
-
-    # Filter to where flashee team and flasher team are the same
-    team_flashes_df = flashes_w_both_team_df[flashes_w_both_team_df["team_user"]==flashes_w_both_team_df["team_attacker"]]
-
-    #print(team_flashes_df)
-
-    # Aggregate and sort by team
-    team_flash_leaderboard_df = team_flashes_df[['attacker_name','team_attacker','blind_duration']].groupby(['attacker_name','team_attacker']).agg(['count','sum'])
-    #print(team_flash_leaderboard_df)
-    print(team_flash_leaderboard_df.sort_values(by=[('blind_duration','count')], ascending=False))
-    return team_flash_leaderboard_df
-
-class Demo():
-    def __init__(self, url:str):
-        self.url             = url
+        :param url: URL to download the demo from (Valve replay server)
+        :param db: Database connection. If None, creates a new connection.
+        """
+        self.url = url
+        self.db = db if db is not None else Connect()
 
         self.is_downloaded   = False
         self.is_decompressed = False
@@ -117,15 +114,33 @@ class Demo():
 
     def store_data_in_db(self):
         """
-        Writes info about file into DB
-        """
+        Parses demo data and stores it in the stats.* tables.
 
+        Uses StatsInserter to extract and insert all stats:
+        - Match metadata (stats.matches)
+        - Player stats per match (stats.player_matches)
+        - Round-by-round data (stats.rounds)
+        - Kill events (stats.kills)
+        - Weapon statistics (stats.weapon_stats)
+        - Flash statistics (stats.flash_stats)
+        """
         if not self.is_decompressed or not self.is_downloaded:
             logger.error(f'File from {self.url} has either not been decompressed or downloaded')
             raise
-        
-        get_team_flashed_by_player(self.demo_parser)
-        #insert info here
+
+        logger.info(f'Inserting parsed stats for {self.demo_filename}')
+        try:
+            inserter = StatsInserter(
+                parser=self.demo_parser,
+                db=self.db,
+                demo_filename=self.demo_filename,
+                demo_url=self.url
+            )
+            inserter.insert_all()
+            logger.info(f'Successfully inserted stats for match_id: {inserter.match_id}')
+        except Exception as e:
+            logger.error(f'Failed to insert stats: {e}')
+            raise
 
         self.is_stored_in_db = True
 
