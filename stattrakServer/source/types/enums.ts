@@ -1,0 +1,25 @@
+export enum Team {
+  CT = "CT",
+  T = "T",
+  SPECTATOR = "SPECTATOR",
+  UNASSIGNED = "UNASSIGNED",
+}
+
+export enum RoundEndReason {
+  TARGET_BOMBED = "TARGET_BOMBED",
+  BOMB_DEFUSED = "BOMB_DEFUSED",
+  CT_WIN = "CT_WIN",
+  T_WIN = "T_WIN",
+  CT_ELIMINATION = "CT_ELIMINATION",
+  T_ELIMINATION = "T_ELIMINATION",
+  TIME_RAN_OUT = "TIME_RAN_OUT",
+  HOSTAGES_RESCUED = "HOSTAGES_RESCUED",
+  TARGET_SAVED = "TARGET_SAVED",
+  DRAW = "DRAW",
+}
+
+export enum MatchResult {
+  WIN = "WIN",
+  LOSS = "LOSS",
+  TIE = "TIE",
+}
