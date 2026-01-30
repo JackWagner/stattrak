@@ -206,17 +206,6 @@ npm run dev            # Development server on http://localhost:8080
 npm run build          # Compile TypeScript
 ```
 
-**Environment Variables (.env):**
-```
-PORT=8080
-NODE_ENV=development
-DB_HOST=localhost
-DB_PORT=5432
-DB_NAME=stattrak
-DB_USER=postgres
-DB_PASSWORD=your_password
-```
-
 ---
 
 ### demoETL (Python Pipeline)
@@ -256,26 +245,6 @@ demoETL/
 - `matches.queue_failed_to_process` - Failed processing attempts
 - `users.latest_match_auth` - User authentication & latest match codes
 - `stats.*` - Parsed match statistics (planned)
-
-**Configuration:**
-Requires `~/.ssh/db_user.json` with PostgreSQL credentials:
-```json
-{
-  "database": "stattrak",
-  "user": "your_user",
-  "host": "localhost",
-  "password": "your_password",
-  "port": "5432"
-}
-```
-
-Requires `~/.ssh/steam_user.json` with Steam credentials:
-```json
-{
-  "username": "your_steam_username",
-  "password": "your_steam_password"
-}
-```
 
 <!-- GETTING STARTED -->
 ## Getting Started
