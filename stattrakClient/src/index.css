@@ -1,0 +1,906 @@
+/* =============================================================================
+   GLOBAL STYLES - Main stylesheet for the Stattrak application
+   =============================================================================
+   CSS (Cascading Style Sheets) controls how elements look on the page.
+
+   CSS works by selecting elements and applying styles to them:
+   - .classname { } - selects elements with class="classname"
+   - #id { } - selects element with id="id"
+   - element { } - selects all elements of that type (e.g., h1, p, div)
+
+   Colors in this file use a CS2 inspired dark theme.
+   ============================================================================= */
+
+/* -----------------------------------------------------------------------------
+   CSS VARIABLES (Custom Properties)
+   -----------------------------------------------------------------------------
+   Variables let us define values once and reuse them throughout the CSS.
+   They start with -- and are accessed with var(--name).
+   This makes it easy to change colors/sizes in one place.
+   ----------------------------------------------------------------------------- */
+:root {
+  /* Color palette */
+  --color-bg-dark: #0a0a0f;           /* Darkest background */
+  --color-bg-medium: #12121a;         /* Medium dark background */
+  --color-bg-light: #1a1a25;          /* Lighter background for cards */
+  --color-bg-hover: #252535;          /* Hover state background */
+
+  --color-text-primary: #ffffff;      /* Main text color */
+  --color-text-secondary: #a0a0b0;    /* Muted text color */
+  --color-text-muted: #606070;        /* Very muted text */
+
+  --color-ct: #5d79ae;                /* Counter-Terrorist blue */
+  --color-ct-light: #7d99ce;          /* Lighter CT blue */
+  --color-t: #de9b35;                 /* Terrorist orange/yellow */
+  --color-t-light: #febb55;           /* Lighter T orange */
+
+  --color-win: #4caf50;               /* Green for wins */
+  --color-loss: #f44336;              /* Red for losses */
+  --color-tie: #9e9e9e;               /* Gray for ties */
+
+  --color-accent: #ff9800;            /* Accent color (orange) */
+  --color-link: #64b5f6;              /* Link color */
+
+  /* Spacing */
+  --spacing-xs: 4px;
+  --spacing-sm: 8px;
+  --spacing-md: 16px;
+  --spacing-lg: 24px;
+  --spacing-xl: 32px;
+
+  /* Border radius */
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+
+  /* Transitions */
+  --transition-fast: 150ms ease;
+  --transition-normal: 250ms ease;
+}
+
+/* -----------------------------------------------------------------------------
+   RESET & BASE STYLES
+   -----------------------------------------------------------------------------
+   These rules reset browser defaults and set up base styles.
+   ----------------------------------------------------------------------------- */
+
+/* Reset margins and padding, use border-box sizing */
+*,
+*::before,
+*::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;  /* Makes width/height include padding and border */
+}
+
+/* Base styles for the entire page */
+html {
+  font-size: 16px;         /* Base font size (1rem = 16px) */
+  scroll-behavior: smooth; /* Smooth scrolling when clicking anchor links */
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen,
+    Ubuntu, Cantarell, sans-serif;
+  background-color: var(--color-bg-dark);
+  color: var(--color-text-primary);
+  line-height: 1.5;        /* Space between lines of text */
+  min-height: 100vh;       /* At least full viewport height */
+}
+
+/* Make images responsive by default */
+img {
+  max-width: 100%;
+  display: block;
+}
+
+/* Style all links */
+a {
+  color: var(--color-link);
+  text-decoration: none;   /* Remove underline */
+  transition: color var(--transition-fast);
+}
+
+a:hover {
+  color: var(--color-accent);
+}
+
+/* -----------------------------------------------------------------------------
+   LAYOUT COMPONENT STYLES
+   ----------------------------------------------------------------------------- */
+
+/* Main layout wrapper - uses flexbox for sticky footer */
+.layout {
+  display: flex;
+  flex-direction: column;  /* Stack children vertically */
+  min-height: 100vh;       /* Full viewport height */
+}
+
+/* Header / Navigation bar */
+.header {
+  background-color: var(--color-bg-medium);
+  border-bottom: 1px solid var(--color-bg-light);
+  position: sticky;        /* Stays at top when scrolling */
+  top: 0;
+  z-index: 100;            /* Above other content */
+}
+
+.header-content {
+  max-width: 1200px;
+  margin: 0 auto;          /* Center horizontally */
+  padding: var(--spacing-md) var(--spacing-lg);
+  display: flex;
+  align-items: center;     /* Vertically center items */
+  justify-content: space-between; /* Space between logo and nav */
+}
+
+/* Logo text */
+.logo {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: var(--color-accent);
+}
+
+.logo:hover {
+  color: var(--color-t-light);
+}
+
+/* Navigation links container */
+.nav {
+  display: flex;
+  gap: var(--spacing-lg);  /* Space between links */
+}
+
+.nav-link {
+  color: var(--color-text-secondary);
+  font-weight: 500;
+  padding: var(--spacing-sm) var(--spacing-md);
+  border-radius: var(--radius-sm);
+  transition: all var(--transition-fast);
+}
+
+.nav-link:hover {
+  color: var(--color-text-primary);
+  background-color: var(--color-bg-hover);
+}
+
+/* Main content area */
+.main {
+  flex: 1;                 /* Grows to fill available space */
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: var(--spacing-xl) var(--spacing-lg);
+  width: 100%;
+}
+
+/* Footer */
+.footer {
+  background-color: var(--color-bg-medium);
+  border-top: 1px solid var(--color-bg-light);
+  padding: var(--spacing-lg);
+  text-align: center;
+  color: var(--color-text-muted);
+}
+
+/* -----------------------------------------------------------------------------
+   REUSABLE COMPONENT STYLES
+   ----------------------------------------------------------------------------- */
+
+/* Loading spinner */
+.loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--spacing-xl);
+  gap: var(--spacing-md);
+  color: var(--color-text-secondary);
+}
+
+/* Spinning animation */
+.loading-spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid var(--color-bg-light);
+  border-top-color: var(--color-accent);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+/* Keyframes define the animation */
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Error message box */
+.error-message {
+  background-color: rgba(244, 67, 54, 0.1);
+  border: 1px solid var(--color-loss);
+  border-radius: var(--radius-md);
+  padding: var(--spacing-lg);
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-md);
+}
+
+.error-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  background-color: var(--color-loss);
+  color: white;
+  border-radius: 50%;
+  font-weight: bold;
+  font-size: 1.5rem;
+}
+
+.retry-button {
+  background-color: var(--color-accent);
+  color: var(--color-bg-dark);
+  border: none;
+  padding: var(--spacing-sm) var(--spacing-lg);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  font-weight: 500;
+  transition: background-color var(--transition-fast);
+}
+
+.retry-button:hover {
+  background-color: var(--color-t-light);
+}
+
+/* Stat card */
+.stat-card {
+  background-color: var(--color-bg-light);
+  border-radius: var(--radius-md);
+  padding: var(--spacing-lg);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-xs);
+}
+
+.stat-label {
+  color: var(--color-text-muted);
+  font-size: 0.875rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.stat-value {
+  font-size: 2rem;
+  font-weight: bold;
+  color: var(--color-text-primary);
+}
+
+.stat-subtext {
+  color: var(--color-text-secondary);
+  font-size: 0.875rem;
+}
+
+/* Stats grid (for stat cards) */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: var(--spacing-md);
+}
+
+/* Player search form */
+.player-search {
+  display: flex;
+  gap: var(--spacing-sm);
+  max-width: 400px;
+  margin: var(--spacing-lg) auto;
+}
+
+.search-input {
+  flex: 1;
+  padding: var(--spacing-md);
+  border: 1px solid var(--color-bg-light);
+  border-radius: var(--radius-sm);
+  background-color: var(--color-bg-medium);
+  color: var(--color-text-primary);
+  font-size: 1rem;
+}
+
+.search-input:focus {
+  outline: none;
+  border-color: var(--color-accent);
+}
+
+.search-input::placeholder {
+  color: var(--color-text-muted);
+}
+
+.search-button {
+  padding: var(--spacing-md) var(--spacing-lg);
+  background-color: var(--color-accent);
+  color: var(--color-bg-dark);
+  border: none;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  font-weight: 500;
+  transition: background-color var(--transition-fast);
+}
+
+.search-button:hover {
+  background-color: var(--color-t-light);
+}
+
+/* -----------------------------------------------------------------------------
+   PAGE-SPECIFIC STYLES
+   ----------------------------------------------------------------------------- */
+
+/* Hero section (home page) */
+.hero {
+  text-align: center;
+  padding: var(--spacing-xl) 0;
+  margin-bottom: var(--spacing-xl);
+}
+
+.hero h1 {
+  font-size: 2.5rem;
+  margin-bottom: var(--spacing-md);
+  color: var(--color-accent);
+}
+
+.hero p {
+  color: var(--color-text-secondary);
+  font-size: 1.125rem;
+}
+
+/* Section headers */
+.section {
+  margin-bottom: var(--spacing-xl);
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--spacing-lg);
+}
+
+.section h2 {
+  font-size: 1.5rem;
+  color: var(--color-text-primary);
+}
+
+.view-all-link {
+  color: var(--color-accent);
+  font-weight: 500;
+}
+
+.page-header {
+  margin-bottom: var(--spacing-xl);
+}
+
+.page-header h1 {
+  font-size: 2rem;
+  margin-bottom: var(--spacing-sm);
+}
+
+.page-header p {
+  color: var(--color-text-secondary);
+}
+
+/* Matches grid (home page) */
+.matches-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: var(--spacing-md);
+}
+
+/* Match card (clickable) */
+.match-card {
+  background-color: var(--color-bg-light);
+  border-radius: var(--radius-md);
+  padding: var(--spacing-lg);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-sm);
+  transition: all var(--transition-fast);
+  border: 1px solid transparent;
+}
+
+.match-card:hover {
+  background-color: var(--color-bg-hover);
+  border-color: var(--color-accent);
+  transform: translateY(-2px);
+}
+
+.match-map {
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+.match-score {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  font-size: 1.5rem;
+  font-weight: bold;
+}
+
+.ct-score {
+  color: var(--color-ct);
+}
+
+.t-score {
+  color: var(--color-t);
+}
+
+.score-divider {
+  color: var(--color-text-muted);
+}
+
+.match-date {
+  color: var(--color-text-muted);
+  font-size: 0.875rem;
+}
+
+/* Matches list (matches page) */
+.matches-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+}
+
+.match-list-item {
+  background-color: var(--color-bg-light);
+  border-radius: var(--radius-md);
+  padding: var(--spacing-md) var(--spacing-lg);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: all var(--transition-fast);
+  border: 1px solid transparent;
+}
+
+.match-list-item:hover {
+  background-color: var(--color-bg-hover);
+  border-color: var(--color-accent);
+}
+
+.match-info {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+}
+
+.match-players {
+  color: var(--color-text-muted);
+  font-size: 0.875rem;
+}
+
+/* Pagination */
+.pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: var(--spacing-lg);
+  margin-top: var(--spacing-xl);
+}
+
+.pagination-button {
+  padding: var(--spacing-sm) var(--spacing-lg);
+  background-color: var(--color-bg-light);
+  color: var(--color-text-primary);
+  border: 1px solid var(--color-bg-hover);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.pagination-button:hover:not(:disabled) {
+  background-color: var(--color-bg-hover);
+  border-color: var(--color-accent);
+}
+
+.pagination-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.pagination-info {
+  color: var(--color-text-secondary);
+}
+
+/* Match detail page */
+.match-detail-header {
+  text-align: center;
+  margin-bottom: var(--spacing-xl);
+}
+
+.match-detail-header h1 {
+  font-size: 2rem;
+  color: var(--color-accent);
+  margin-bottom: var(--spacing-sm);
+}
+
+.match-final-score {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: var(--spacing-xl);
+  margin: var(--spacing-lg) 0;
+}
+
+.team-score {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-xs);
+}
+
+.team-score .score {
+  font-size: 3rem;
+  font-weight: bold;
+}
+
+.team-score.ct-side .score {
+  color: var(--color-ct);
+}
+
+.team-score.t-side .score {
+  color: var(--color-t);
+}
+
+.team-label {
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  font-size: 0.875rem;
+}
+
+.score-separator {
+  color: var(--color-text-muted);
+  font-size: 1.5rem;
+}
+
+.match-duration {
+  color: var(--color-text-secondary);
+}
+
+/* Scoreboard tables */
+.team-scoreboard {
+  margin-bottom: var(--spacing-lg);
+}
+
+.team-title {
+  padding: var(--spacing-md);
+  border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+  font-weight: 600;
+}
+
+.team-title.ct {
+  background-color: rgba(93, 121, 174, 0.2);
+  color: var(--color-ct-light);
+}
+
+.team-title.t {
+  background-color: rgba(222, 155, 53, 0.2);
+  color: var(--color-t-light);
+}
+
+.scoreboard-table {
+  width: 100%;
+  border-collapse: collapse;
+  background-color: var(--color-bg-light);
+}
+
+.scoreboard-table th,
+.scoreboard-table td {
+  padding: var(--spacing-md);
+  text-align: left;
+  border-bottom: 1px solid var(--color-bg-hover);
+}
+
+.scoreboard-table th {
+  color: var(--color-text-muted);
+  font-weight: 500;
+  font-size: 0.875rem;
+  text-transform: uppercase;
+}
+
+.player-link {
+  color: var(--color-text-primary);
+  font-weight: 500;
+}
+
+.player-link:hover {
+  color: var(--color-accent);
+}
+
+/* Round history */
+.rounds-timeline {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-xs);
+}
+
+.round-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: var(--spacing-sm);
+  border-radius: var(--radius-sm);
+  min-width: 50px;
+  font-size: 0.75rem;
+}
+
+.round-item.ct-win {
+  background-color: rgba(93, 121, 174, 0.2);
+  color: var(--color-ct-light);
+}
+
+.round-item.t-win {
+  background-color: rgba(222, 155, 53, 0.2);
+  color: var(--color-t-light);
+}
+
+.round-number {
+  font-weight: bold;
+}
+
+.round-winner {
+  font-size: 0.625rem;
+  opacity: 0.8;
+}
+
+.round-score {
+  font-size: 0.625rem;
+  color: var(--color-text-muted);
+}
+
+/* Player page */
+.player-header {
+  margin-bottom: var(--spacing-xl);
+}
+
+.player-header h1 {
+  font-size: 2rem;
+  margin-bottom: var(--spacing-xs);
+}
+
+.steam-id {
+  color: var(--color-text-muted);
+  font-family: monospace;
+}
+
+/* Tabs */
+.tabs {
+  display: flex;
+  gap: var(--spacing-sm);
+  margin-bottom: var(--spacing-lg);
+  border-bottom: 1px solid var(--color-bg-light);
+  padding-bottom: var(--spacing-sm);
+}
+
+.tab {
+  padding: var(--spacing-sm) var(--spacing-lg);
+  background: none;
+  border: none;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  font-size: 1rem;
+  border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+  transition: all var(--transition-fast);
+}
+
+.tab:hover {
+  color: var(--color-text-primary);
+  background-color: var(--color-bg-light);
+}
+
+.tab.active {
+  color: var(--color-accent);
+  border-bottom: 2px solid var(--color-accent);
+}
+
+/* Player matches list */
+.player-matches-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+}
+
+.player-match-item {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-lg);
+  padding: var(--spacing-md);
+  background-color: var(--color-bg-light);
+  border-radius: var(--radius-sm);
+  border-left: 3px solid transparent;
+  transition: all var(--transition-fast);
+}
+
+.player-match-item:hover {
+  background-color: var(--color-bg-hover);
+}
+
+.player-match-item.result-win {
+  border-left-color: var(--color-win);
+}
+
+.player-match-item.result-loss {
+  border-left-color: var(--color-loss);
+}
+
+.player-match-item.result-tie {
+  border-left-color: var(--color-tie);
+}
+
+.match-result {
+  font-weight: bold;
+  min-width: 50px;
+}
+
+.result-win .match-result {
+  color: var(--color-win);
+}
+
+.result-loss .match-result {
+  color: var(--color-loss);
+}
+
+.result-tie .match-result {
+  color: var(--color-tie);
+}
+
+.match-stats {
+  color: var(--color-text-secondary);
+  font-family: monospace;
+}
+
+/* Data tables */
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  background-color: var(--color-bg-light);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+
+.data-table th,
+.data-table td {
+  padding: var(--spacing-md);
+  text-align: left;
+  border-bottom: 1px solid var(--color-bg-hover);
+}
+
+.data-table th {
+  background-color: var(--color-bg-medium);
+  color: var(--color-text-muted);
+  font-weight: 500;
+  font-size: 0.875rem;
+  text-transform: uppercase;
+}
+
+.data-table.sortable th {
+  cursor: pointer;
+  user-select: none;
+}
+
+.data-table.sortable th:hover {
+  background-color: var(--color-bg-hover);
+}
+
+.data-table tr:hover {
+  background-color: var(--color-bg-hover);
+}
+
+.weapon-name,
+.map-name {
+  font-weight: 500;
+}
+
+/* No data message */
+.no-data {
+  text-align: center;
+  color: var(--color-text-muted);
+  padding: var(--spacing-xl);
+}
+
+/* 404 page */
+.not-found {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 60vh;
+  text-align: center;
+  gap: var(--spacing-md);
+}
+
+.not-found h1 {
+  font-size: 3rem;
+  color: var(--color-accent);
+}
+
+.not-found a {
+  margin-top: var(--spacing-md);
+  padding: var(--spacing-md) var(--spacing-xl);
+  background-color: var(--color-accent);
+  color: var(--color-bg-dark);
+  border-radius: var(--radius-sm);
+  font-weight: 500;
+}
+
+.not-found a:hover {
+  background-color: var(--color-t-light);
+}
+
+/* -----------------------------------------------------------------------------
+   RESPONSIVE DESIGN
+   -----------------------------------------------------------------------------
+   Media queries adjust styles based on screen size.
+   This ensures the app looks good on phones, tablets, and desktops.
+   ----------------------------------------------------------------------------- */
+
+/* Tablets and smaller */
+@media (max-width: 768px) {
+  .header-content {
+    flex-direction: column;
+    gap: var(--spacing-md);
+  }
+
+  .nav {
+    gap: var(--spacing-md);
+  }
+
+  .hero h1 {
+    font-size: 2rem;
+  }
+
+  .match-final-score {
+    gap: var(--spacing-lg);
+  }
+
+  .team-score .score {
+    font-size: 2rem;
+  }
+
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .tabs {
+    flex-wrap: wrap;
+  }
+
+  /* Make tables scrollable on mobile */
+  .scoreboard-table,
+  .data-table {
+    display: block;
+    overflow-x: auto;
+  }
+}
+
+/* Phones */
+@media (max-width: 480px) {
+  .main {
+    padding: var(--spacing-md);
+  }
+
+  .stats-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .match-list-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--spacing-sm);
+  }
+
+  .player-match-item {
+    flex-wrap: wrap;
+  }
+}
