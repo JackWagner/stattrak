@@ -19,6 +19,7 @@ import {
   PlayerPage,
   FlashStatsPage,
   SentimentPage,
+  CareerPage,
 } from './pages';
 
 // We still need to import the global styles
@@ -61,6 +62,14 @@ function App() {
         Example: /players/76561198012345678
       */}
       <Route path="/players/:steamId" element={<PlayerPage />} />
+
+      {/*
+        PLAYER CAREER PAGE
+        Path: /players/:steamId/career
+        Shows career progression, trends, and milestones for a player
+        Example: /players/76561198012345678/career
+      */}
+      <Route path="/players/:steamId/career" element={<CareerPage />} />
 
       {/*
         FLASH STATS PAGE

@@ -5,3 +5,4 @@ export * from "./kill.model";
 export * from "./weapon.model";
 export * from "./flash.model";
 export * from "./sentiment.model";
+export * from "./career.model";

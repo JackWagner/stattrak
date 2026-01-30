@@ -21,6 +21,7 @@ import type {
   PlayerFlashStatsAggregate,
   FlashLeaderboardEntry,
   MatchSentimentData,
+  PlayerCareer,
 } from '../types';
 
 // -----------------------------------------------------------------------------
@@ -310,4 +311,31 @@ export async function getEnemyFlashLeaderboard(
 // -----------------------------------------------------------------------------
 export async function getMatchSentimentData(matchId: string): Promise<MatchSentimentData> {
   return makeRequest<MatchSentimentData>(`/api/sentiment/${matchId}`);
+}
+
+// =============================================================================
+// CAREER API FUNCTIONS
+// =============================================================================
+
+// -----------------------------------------------------------------------------
+// getPlayerCareer - Fetch a player's career profile with trends and milestones
+// -----------------------------------------------------------------------------
+// Parameters:
+//   steamId: The player's Steam ID
+//   includeSentiment: Whether to include sentiment analysis (default: true)
+//   includeFlashes: Whether to include flash statistics (default: true)
+// Returns:
+//   PlayerCareer object with performance history, trends, milestones, and recent form
+// -----------------------------------------------------------------------------
+export async function getPlayerCareer(
+  steamId: string,
+  includeSentiment: boolean = true,
+  includeFlashes: boolean = true
+): Promise<PlayerCareer> {
+  const params = new URLSearchParams();
+  if (!includeSentiment) params.append('sentiment', 'false');
+  if (!includeFlashes) params.append('flashes', 'false');
+
+  const query = params.toString() ? `?${params.toString()}` : '';
+  return makeRequest<PlayerCareer>(`/api/players/${steamId}/career${query}`);
 }

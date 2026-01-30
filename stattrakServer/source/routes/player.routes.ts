@@ -23,4 +23,9 @@ router.get("/:steamId/maps", (req, res, next) =>
   playerController.getPlayerMaps(req, res, next),
 );
 
+// GET /api/players/:steamId/career - Career profile with trends and milestones
+router.get("/:steamId/career", (req, res, next) =>
+  playerController.getPlayerCareer(req, res, next),
+);
+
 export default router;

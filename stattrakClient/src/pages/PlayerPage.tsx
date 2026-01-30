@@ -129,6 +129,9 @@ function PlayerPage() {
       <div className="player-header">
         <h1>{player.name}</h1>
         <p className="steam-id">Steam ID: {player.steamId}</p>
+        <Link to={`/players/${steamId}/career`} className="career-link">
+          View Career Profile &rarr;
+        </Link>
       </div>
 
       {/* Stats Overview */}

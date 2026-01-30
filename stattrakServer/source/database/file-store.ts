@@ -399,6 +399,55 @@ export const fileStore = {
     return readTable("chat_messages").sort((a, b) => a.tick - b.tick);
   },
 
+  getChatMessagesBySteamId(steamId: string): TableRecord[] {
+    return readTable("chat_messages")
+      .filter((r) => r.steam_id === steamId)
+      .sort((a, b) => a.tick - b.tick);
+  },
+
+  // =========================================================================
+  // CAREER DATA (for trend analysis)
+  // =========================================================================
+
+  /**
+   * Get per-match flash stats for a player (not aggregated).
+   * Used for career trend analysis.
+   */
+  getFlashStatsPerMatchBySteamId(steamId: string): TableRecord[] {
+    const records = readTable("flash_stats").filter(
+      (r) => r.steam_id === steamId,
+    );
+    const matches = readTable("matches");
+
+    // Add match dates for sorting
+    return records
+      .map((r) => {
+        const match = matches.find((m) => m.match_id === r.match_id);
+        return {
+          ...r,
+          played_at: match?.played_at || match?.created_at || "",
+        };
+      })
+      .sort(
+        (a, b) =>
+          new Date(a.played_at).getTime() - new Date(b.played_at).getTime(),
+      );
+  },
+
+  /**
+   * Get all unique player Steam IDs from the database.
+   */
+  getAllPlayerSteamIds(): string[] {
+    const records = readTable("player_matches");
+    const steamIds = new Set<string>();
+    for (const record of records) {
+      if (record.steam_id) {
+        steamIds.add(record.steam_id);
+      }
+    }
+    return Array.from(steamIds);
+  },
+
   // =========================================================================
   // VOICE FILES (metadata only - actual files stored on disk)
   // =========================================================================

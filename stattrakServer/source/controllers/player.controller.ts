@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import { playerService } from "../services/player.service";
+import { careerService } from "../services/career.service";
 import { BadRequestError } from "../utils/errors";
 import { ApiResponse } from "../types/api.types";
 
@@ -80,6 +81,30 @@ export class PlayerController {
       const response: ApiResponse<typeof mapStats> = {
         success: true,
         data: mapStats,
+      };
+
+      res.json(response);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  // GET /api/players/:steamId/career
+  async getPlayerCareer(req: Request, res: Response, next: NextFunction) {
+    try {
+      const { steamId } = req.params;
+      const includeSentiment = req.query.sentiment !== "false";
+      const includeFlashes = req.query.flashes !== "false";
+
+      const career = await careerService.getPlayerCareer(
+        steamId,
+        includeSentiment,
+        includeFlashes,
+      );
+
+      const response: ApiResponse<typeof career> = {
+        success: true,
+        data: career,
       };
 
       res.json(response);

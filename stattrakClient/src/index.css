@@ -905,3 +905,278 @@ a:hover {
     flex-wrap: wrap;
   }
 }
+
+/* -----------------------------------------------------------------------------
+   CAREER PAGE STYLES
+   ----------------------------------------------------------------------------- */
+
+/* Career header with form badge */
+.career-header {
+  margin-bottom: var(--spacing-xl);
+}
+
+.career-header .header-main {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  margin-bottom: var(--spacing-xs);
+}
+
+.career-header h1 {
+  font-size: 2rem;
+}
+
+.career-subtitle {
+  color: var(--color-text-muted);
+  margin-bottom: var(--spacing-sm);
+}
+
+.back-link {
+  color: var(--color-accent);
+  font-size: 0.875rem;
+}
+
+.career-link {
+  display: inline-block;
+  margin-top: var(--spacing-sm);
+  color: var(--color-accent);
+  font-weight: 500;
+}
+
+/* Form badge (HOT/AVERAGE/COLD) */
+.form-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  padding: var(--spacing-xs) var(--spacing-sm);
+  border-radius: var(--radius-sm);
+  font-weight: 600;
+  font-size: 0.875rem;
+}
+
+.form-badge.form-hot {
+  background-color: rgba(255, 87, 34, 0.2);
+  color: #ff5722;
+}
+
+.form-badge.form-average {
+  background-color: rgba(158, 158, 158, 0.2);
+  color: #9e9e9e;
+}
+
+.form-badge.form-cold {
+  background-color: rgba(33, 150, 243, 0.2);
+  color: #2196f3;
+}
+
+/* Form comparison stats */
+.form-comparison {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: var(--spacing-md);
+}
+
+.comparison-stat {
+  background-color: var(--color-bg-light);
+  border-radius: var(--radius-md);
+  padding: var(--spacing-md);
+}
+
+.comparison-label {
+  color: var(--color-text-muted);
+  font-size: 0.875rem;
+  margin-bottom: var(--spacing-sm);
+}
+
+.comparison-values {
+  display: flex;
+  align-items: baseline;
+  gap: var(--spacing-sm);
+}
+
+.recent-value {
+  font-size: 1.5rem;
+  font-weight: bold;
+}
+
+.vs {
+  color: var(--color-text-muted);
+  font-size: 0.75rem;
+}
+
+.career-value {
+  color: var(--color-text-secondary);
+}
+
+.diff-value {
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.diff-value.diff-positive {
+  color: var(--color-win);
+}
+
+.diff-value.diff-negative {
+  color: var(--color-loss);
+}
+
+.diff-value.diff-neutral {
+  color: var(--color-text-muted);
+}
+
+/* Trend indicators */
+.trends-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: var(--spacing-md);
+}
+
+.trend-indicator {
+  background-color: var(--color-bg-light);
+  border-radius: var(--radius-md);
+  padding: var(--spacing-md);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+}
+
+.trend-label {
+  color: var(--color-text-muted);
+  font-size: 0.875rem;
+}
+
+.trend-value {
+  font-size: 1.25rem;
+  font-weight: bold;
+  font-family: monospace;
+}
+
+.trend-indicator.trend-positive .trend-value {
+  color: var(--color-win);
+}
+
+.trend-indicator.trend-negative .trend-value {
+  color: var(--color-loss);
+}
+
+.trend-indicator.trend-neutral .trend-value {
+  color: var(--color-text-muted);
+}
+
+/* Milestones grid */
+.milestones-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: var(--spacing-md);
+}
+
+.milestone-card {
+  background-color: var(--color-bg-light);
+  border-radius: var(--radius-md);
+  padding: var(--spacing-lg);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: var(--spacing-sm);
+  border-left: 3px solid transparent;
+}
+
+.milestone-card.good {
+  border-left-color: var(--color-win);
+}
+
+.milestone-card.bad {
+  border-left-color: var(--color-loss);
+}
+
+.milestone-label {
+  color: var(--color-text-muted);
+  font-size: 0.875rem;
+}
+
+.milestone-value {
+  font-size: 1.75rem;
+  font-weight: bold;
+}
+
+.milestone-link {
+  color: var(--color-accent);
+  font-size: 0.875rem;
+}
+
+/* Performance chart (mini bar chart) */
+.performance-chart {
+  display: flex;
+  align-items: flex-end;
+  gap: var(--spacing-sm);
+  height: 120px;
+  padding: var(--spacing-md);
+  background-color: var(--color-bg-light);
+  border-radius: var(--radius-md);
+}
+
+.perf-bar {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  min-width: 40px;
+  height: 100%;
+  text-decoration: none;
+  transition: all var(--transition-fast);
+}
+
+.perf-bar:hover {
+  transform: scaleY(1.05);
+}
+
+.perf-bar .bar-fill {
+  width: 100%;
+  border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+  min-height: 10px;
+  transition: all var(--transition-fast);
+}
+
+.perf-bar.win .bar-fill {
+  background-color: var(--color-win);
+}
+
+.perf-bar.loss .bar-fill {
+  background-color: var(--color-loss);
+}
+
+.perf-bar.tie .bar-fill {
+  background-color: var(--color-tie);
+}
+
+.perf-bar .bar-label {
+  margin-top: var(--spacing-xs);
+  font-size: 0.75rem;
+  color: var(--color-text-secondary);
+}
+
+.chart-legend {
+  text-align: center;
+  color: var(--color-text-muted);
+  font-size: 0.75rem;
+  margin-top: var(--spacing-sm);
+}
+
+/* Section description */
+.section-description {
+  color: var(--color-text-secondary);
+  font-size: 0.875rem;
+  margin-bottom: var(--spacing-md);
+}
+
+/* Stat highlighting in tables */
+.stat-good {
+  color: var(--color-win);
+}
+
+.stat-bad {
+  color: var(--color-loss);
+}

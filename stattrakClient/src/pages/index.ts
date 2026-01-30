@@ -8,3 +8,4 @@ export { default as MatchDetailPage } from './MatchDetailPage';
 export { default as PlayerPage } from './PlayerPage';
 export { default as FlashStatsPage } from './FlashStatsPage';
 export { default as SentimentPage } from './SentimentPage';
+export { default as CareerPage } from './CareerPage';
