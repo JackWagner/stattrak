@@ -1,2 +1,6 @@
 *~
 config/
+demos/
+*.dem
+*.dem.bz2
+stattrakServer/.env.example
