@@ -57,6 +57,9 @@ function Layout({ children }: LayoutProps) {
             <Link to="/flashes" className="nav-link">
               Flashes
             </Link>
+            <Link to="/sentiment" className="nav-link">
+              Sentiment
+            </Link>
           </nav>
         </div>
       </header>

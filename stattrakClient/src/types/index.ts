@@ -235,3 +235,37 @@ export interface MatchFlashSummary {
   worstTeamFlasher: string;
   bestFlasher: string;
 }
+
+// -----------------------------------------------------------------------------
+// Sentiment / Chat Types
+// -----------------------------------------------------------------------------
+
+// A single chat message from a match
+export interface ChatMessage {
+  matchId: string;
+  tick: number;              // game tick when message was sent
+  steamId: string;
+  playerName: string;
+  message: string;
+}
+
+// Voice file metadata
+export interface VoiceFileMetadata {
+  matchId: string;
+  steamId: string;
+  filename: string;
+  filePath: string;
+  sizeBytes: number;
+  createdAt: string;
+}
+
+// Combined sentiment data for a match
+export interface MatchSentimentData {
+  matchId: string;
+  map: string;
+  playedAt: string;
+  chatMessages: ChatMessage[];
+  voiceFiles: VoiceFileMetadata[];
+  chatMessageCount: number;
+  voiceFileCount: number;
+}

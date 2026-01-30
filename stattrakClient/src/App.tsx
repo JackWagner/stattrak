@@ -18,6 +18,7 @@ import {
   MatchDetailPage,
   PlayerPage,
   FlashStatsPage,
+  SentimentPage,
 } from './pages';
 
 // We still need to import the global styles
@@ -67,6 +68,13 @@ function App() {
         Shows flashbang statistics - team flash hall of shame and enemy flash hall of fame
       */}
       <Route path="/flashes" element={<FlashStatsPage />} />
+
+      {/*
+        SENTIMENT PAGE
+        Path: /sentiment
+        Shows chat logs and voice file metadata for sentiment analysis
+      */}
+      <Route path="/sentiment" element={<SentimentPage />} />
 
       {/*
         CATCH-ALL / 404 PAGE

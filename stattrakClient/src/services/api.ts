@@ -20,6 +20,7 @@ import type {
   MatchFlashSummary,
   PlayerFlashStatsAggregate,
   FlashLeaderboardEntry,
+  MatchSentimentData,
 } from '../types';
 
 // -----------------------------------------------------------------------------
@@ -293,4 +294,20 @@ export async function getEnemyFlashLeaderboard(
   return makeRequestWithMeta<FlashLeaderboardEntry[]>(
     `/api/flashes/leaderboard/enemy?page=${page}&limit=${limit}`
   );
+}
+
+// =============================================================================
+// SENTIMENT API FUNCTIONS
+// =============================================================================
+
+// -----------------------------------------------------------------------------
+// getMatchSentimentData - Fetch chat messages and voice file info for a match
+// -----------------------------------------------------------------------------
+// Parameters:
+//   matchId: The unique match identifier
+// Returns:
+//   MatchSentimentData with chat messages and voice file metadata
+// -----------------------------------------------------------------------------
+export async function getMatchSentimentData(matchId: string): Promise<MatchSentimentData> {
+  return makeRequest<MatchSentimentData>(`/api/sentiment/${matchId}`);
 }
