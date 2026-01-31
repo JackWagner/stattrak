@@ -83,10 +83,36 @@ html {
 body {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen,
     Ubuntu, Cantarell, sans-serif;
-  background-color: var(--color-bg-dark);
+  background: linear-gradient(135deg, #0a0a0f 0%, #1a1a25 50%, #0f0a15 100%);
+  background-size: 400% 400%;
+  animation: gradientShift 15s ease infinite;
   color: var(--color-text-primary);
-  line-height: 1.5;        /* Space between lines of text */
-  min-height: 100vh;       /* At least full viewport height */
+  line-height: 1.5;
+  min-height: 100vh;
+  position: relative;
+  overflow-x: hidden;
+}
+
+/* Animated background gradient */
+@keyframes gradientShift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+/* Background pattern overlay */
+body::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image:
+    radial-gradient(circle at 20% 50%, rgba(222, 155, 53, 0.05) 0%, transparent 50%),
+    radial-gradient(circle at 80% 80%, rgba(93, 121, 174, 0.05) 0%, transparent 50%);
+  pointer-events: none;
+  z-index: 0;
 }
 
 /* Make images responsive by default */
@@ -119,11 +145,14 @@ a:hover {
 
 /* Header / Navigation bar */
 .header {
-  background-color: var(--color-bg-medium);
-  border-bottom: 1px solid var(--color-bg-light);
-  position: sticky;        /* Stays at top when scrolling */
+  background: rgba(18, 18, 26, 0.85);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+  position: sticky;
   top: 0;
-  z-index: 100;            /* Above other content */
+  z-index: 100;
 }
 
 .header-content {
@@ -139,11 +168,16 @@ a:hover {
 .logo {
   font-size: 1.5rem;
   font-weight: bold;
-  color: var(--color-accent);
+  background: linear-gradient(135deg, var(--color-t) 0%, var(--color-accent) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  transition: all var(--transition-normal);
 }
 
 .logo:hover {
-  color: var(--color-accent-light);
+  transform: scale(1.05);
+  filter: brightness(1.2);
 }
 
 /* Navigation links container */
@@ -167,11 +201,13 @@ a:hover {
 
 /* Main content area */
 .main {
-  flex: 1;                 /* Grows to fill available space */
+  flex: 1;
   max-width: 1200px;
   margin: 0 auto;
   padding: var(--spacing-xl) var(--spacing-lg);
   width: 100%;
+  position: relative;
+  z-index: 1;
 }
 
 /* Footer */
@@ -258,13 +294,24 @@ a:hover {
 
 /* Stat card */
 .stat-card {
-  background-color: var(--color-bg-light);
+  background: rgba(26, 26, 37, 0.6);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: var(--radius-md);
   padding: var(--spacing-lg);
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: var(--spacing-xs);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  transition: all var(--transition-normal);
+}
+
+.stat-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.4);
+  border-color: rgba(255, 255, 255, 0.2);
 }
 
 .stat-label {
@@ -303,16 +350,20 @@ a:hover {
 .search-input {
   flex: 1;
   padding: var(--spacing-md);
-  border: 1px solid var(--color-bg-light);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: var(--radius-sm);
-  background-color: var(--color-bg-medium);
+  background: rgba(18, 18, 26, 0.6);
+  backdrop-filter: blur(10px);
   color: var(--color-text-primary);
   font-size: 1rem;
+  transition: all var(--transition-normal);
 }
 
 .search-input:focus {
   outline: none;
   border-color: var(--color-accent);
+  box-shadow: 0 0 0 3px rgba(0, 188, 212, 0.1);
+  background: rgba(18, 18, 26, 0.8);
 }
 
 .search-input::placeholder {
@@ -321,17 +372,19 @@ a:hover {
 
 .search-button {
   padding: var(--spacing-md) var(--spacing-lg);
-  background-color: var(--color-accent);
+  background: linear-gradient(135deg, var(--color-accent) 0%, var(--color-accent-light) 100%);
   color: var(--color-bg-dark);
   border: none;
   border-radius: var(--radius-sm);
   cursor: pointer;
-  font-weight: 500;
-  transition: background-color var(--transition-fast);
+  font-weight: 600;
+  transition: all var(--transition-normal);
+  box-shadow: 0 4px 12px rgba(0, 188, 212, 0.3);
 }
 
 .search-button:hover {
-  background-color: var(--color-accent-light);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 188, 212, 0.4);
 }
 
 /* -----------------------------------------------------------------------------
@@ -343,12 +396,28 @@ a:hover {
   text-align: center;
   padding: var(--spacing-xl) 0;
   margin-bottom: var(--spacing-xl);
+  animation: fadeIn 0.6s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .hero h1 {
   font-size: 2.5rem;
   margin-bottom: var(--spacing-md);
-  color: var(--color-accent);
+  background: linear-gradient(135deg, var(--color-accent) 0%, var(--color-t) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  text-shadow: 0 2px 10px rgba(0, 188, 212, 0.3);
 }
 
 .hero p {
@@ -400,21 +469,25 @@ a:hover {
 
 /* Match card (clickable) */
 .match-card {
-  background-color: var(--color-bg-light);
+  background: rgba(26, 26, 37, 0.6);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: var(--radius-md);
   padding: var(--spacing-lg);
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: var(--spacing-sm);
-  transition: all var(--transition-fast);
-  border: 1px solid transparent;
+  transition: all var(--transition-normal);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
 }
 
 .match-card:hover {
-  background-color: var(--color-bg-hover);
+  background: rgba(37, 37, 53, 0.8);
   border-color: var(--color-accent);
-  transform: translateY(-2px);
+  transform: translateY(-4px) scale(1.02);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(0, 188, 212, 0.3);
 }
 
 .match-map {
@@ -455,19 +528,24 @@ a:hover {
 }
 
 .match-list-item {
-  background-color: var(--color-bg-light);
+  background: rgba(26, 26, 37, 0.6);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: var(--radius-md);
   padding: var(--spacing-md) var(--spacing-lg);
   display: flex;
   justify-content: space-between;
   align-items: center;
-  transition: all var(--transition-fast);
-  border: 1px solid transparent;
+  transition: all var(--transition-normal);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 }
 
 .match-list-item:hover {
-  background-color: var(--color-bg-hover);
+  background: rgba(37, 37, 53, 0.8);
   border-color: var(--color-accent);
+  transform: translateX(4px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
 }
 
 .match-info {
@@ -593,14 +671,27 @@ a:hover {
 .scoreboard-table {
   width: 100%;
   border-collapse: collapse;
-  background-color: var(--color-bg-light);
+  background: rgba(26, 26, 37, 0.6);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
 }
 
 .scoreboard-table th,
 .scoreboard-table td {
   padding: var(--spacing-md);
   text-align: left;
-  border-bottom: 1px solid var(--color-bg-hover);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.scoreboard-table tbody tr {
+  transition: all var(--transition-fast);
+}
+
+.scoreboard-table tbody tr:hover {
+  background: rgba(37, 37, 53, 0.8);
 }
 
 .scoreboard-table th {
