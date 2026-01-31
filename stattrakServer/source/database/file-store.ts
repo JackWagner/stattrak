@@ -331,6 +331,78 @@ export const fileStore = {
   },
 
   // =========================================================================
+  // DAMAGE STATS
+  // =========================================================================
+
+  getDamageStatsByMatchId(matchId: string): TableRecord[] {
+    const records = readTable("damage_stats");
+    return records.filter((r) => r.match_id === matchId);
+  },
+
+  getDamageStatsBySteamId(steamId: string): TableRecord | null {
+    const records = readTable("damage_stats").filter(
+      (r) => r.steam_id === steamId,
+    );
+
+    if (records.length === 0) {
+      return null;
+    }
+
+    return {
+      steam_id: steamId,
+      name: records[records.length - 1].name,
+      match_count: records.length,
+      total_enemy_damage: records.reduce(
+        (sum, r) => sum + (r.enemy_damage || 0),
+        0,
+      ),
+      total_team_damage: records.reduce(
+        (sum, r) => sum + (r.team_damage || 0),
+        0,
+      ),
+      total_self_damage: records.reduce(
+        (sum, r) => sum + (r.self_damage || 0),
+        0,
+      ),
+      total_damage: records.reduce((sum, r) => sum + (r.total_damage || 0), 0),
+      total_team_damage_incidents: records.reduce(
+        (sum, r) => sum + (r.team_damage_incidents || 0),
+        0,
+      ),
+    };
+  },
+
+  getTeamDamageLeaderboard(): TableRecord[] {
+    const records = readTable("damage_stats");
+
+    // Aggregate by player
+    const byPlayer: { [steamId: string]: TableRecord } = {};
+
+    for (const record of records) {
+      const steamId = record.steam_id;
+      if (!byPlayer[steamId]) {
+        byPlayer[steamId] = {
+          steam_id: steamId,
+          name: record.name,
+          total_team_damage: 0,
+          total_team_damage_incidents: 0,
+          match_count: 0,
+        };
+      }
+
+      byPlayer[steamId].total_team_damage += record.team_damage || 0;
+      byPlayer[steamId].total_team_damage_incidents +=
+        record.team_damage_incidents || 0;
+      byPlayer[steamId].match_count += 1;
+      byPlayer[steamId].name = record.name; // Use most recent name
+    }
+
+    return Object.values(byPlayer)
+      .filter((p) => p.total_team_damage > 0)
+      .sort((a, b) => b.total_team_damage - a.total_team_damage);
+  },
+
+  // =========================================================================
   // PLAYER MAP STATS
   // =========================================================================
 
