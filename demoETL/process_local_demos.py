@@ -62,6 +62,9 @@ def process_demo(demo_path: str) -> bool:
         logger.info(f"  - Inserting flash stats...")
         inserter.insert_flash_stats()
 
+        logger.info(f"  - Inserting damage stats...")
+        inserter.insert_damage_stats()
+
         logger.info(f"  - Inserting weapon stats...")
         inserter.insert_weapon_stats()
 
