@@ -281,12 +281,15 @@ _For more examples, please refer to the [Documentation](https://example.com)_
 - [x] TypeScript API server with Express
 - [x] React frontend with match/player/weapon views
 - [x] Python ETL for match detection and demo downloading
+- [x] Flash stats tracking (team flash and enemy flash leaderboards)
+- [x] Team damage stats tracking (similar to team flash stats)
+- [ ] Faceit match integration (API integration for match detection)
+- [ ] ESEA match integration (API integration for match detection)
+- [ ] Automated Steam messaging (Stattrak bot messages players after match analysis)
 - [ ] Complete stats schema for parsed demo data
 - [ ] ETL integration to store parsed stats in PostgreSQL
-- [ ] Faceit match integration
-- [ ] ESEA match integration
 - [ ] User authentication
-- [ ] Real-time match notifications
+- [ ] Real-time match notifications via WebSocket
 
 See the [open issues](https://github.com/JackWagner/stattrak/issues) for a full list of proposed features and known issues.
 
