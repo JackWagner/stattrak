@@ -110,6 +110,22 @@ class FileStorage:
         """Insert flash stats."""
         self._upsert_record('flash_stats', flash_data, ['match_id', 'steam_id'])
 
+    def insert_damage_stat(self, damage_data: Dict[str, Any]):
+        """Insert damage stats."""
+        self._upsert_record('damage_stats', damage_data, ['match_id', 'steam_id'])
+
+    def insert_clutch_stat(self, clutch_data: Dict[str, Any]):
+        """Insert clutch stats."""
+        self._upsert_record('clutch_stats', clutch_data, ['match_id', 'steam_id'])
+
+    def insert_multikill_stat(self, multikill_data: Dict[str, Any]):
+        """Insert multikill stats."""
+        self._upsert_record('multikill_stats', multikill_data, ['match_id', 'steam_id'])
+
+    def insert_first_blood_stat(self, first_blood_data: Dict[str, Any]):
+        """Insert first blood stats."""
+        self._upsert_record('first_blood_stats', first_blood_data, ['match_id', 'steam_id'])
+
     def insert_chat_message(self, chat_data: Dict[str, Any]):
         """Insert chat message (upsert by match_id + tick + steam_id)."""
         self._upsert_record('chat_messages', chat_data, ['match_id', 'tick', 'steam_id'])
@@ -175,3 +191,30 @@ class FileStorage:
         if steam_id:
             records = [r for r in records if r.get('steam_id') == steam_id]
         return sorted(records, key=lambda x: x.get('tick', 0))
+
+    def get_clutch_stats(self, match_id: str = None, steam_id: str = None) -> List[Dict[str, Any]]:
+        """Get clutch stats, optionally filtered."""
+        records = self._read_table('clutch_stats')
+        if match_id:
+            records = [r for r in records if r.get('match_id') == match_id]
+        if steam_id:
+            records = [r for r in records if r.get('steam_id') == steam_id]
+        return records
+
+    def get_multikill_stats(self, match_id: str = None, steam_id: str = None) -> List[Dict[str, Any]]:
+        """Get multikill stats, optionally filtered."""
+        records = self._read_table('multikill_stats')
+        if match_id:
+            records = [r for r in records if r.get('match_id') == match_id]
+        if steam_id:
+            records = [r for r in records if r.get('steam_id') == steam_id]
+        return records
+
+    def get_first_blood_stats(self, match_id: str = None, steam_id: str = None) -> List[Dict[str, Any]]:
+        """Get first blood stats, optionally filtered."""
+        records = self._read_table('first_blood_stats')
+        if match_id:
+            records = [r for r in records if r.get('match_id') == match_id]
+        if steam_id:
+            records = [r for r in records if r.get('steam_id') == steam_id]
+        return records
