@@ -39,6 +39,8 @@ import time
 from typing import List, Dict, Optional
 from datetime import datetime, timedelta
 
+from db_utils import Connect
+
 logger = logging.getLogger(__name__)
 
 try:
@@ -78,6 +80,9 @@ class SteamMessenger:
         # Message history to avoid duplicates
         self.sent_messages_file = os.path.expanduser("~/.ssh/stattrak_sent_messages.json")
         self.sent_messages = self._load_sent_messages()
+
+        # Database connection
+        self.db = Connect()
 
     def _load_config(self) -> Dict:
         """Load configuration from JSON file."""
@@ -324,14 +329,155 @@ class SteamMessenger:
         logger.info(f"Sent {sent_count}/{len(notifications)} notifications")
         return sent_count
 
+    # =========================================================================
+    # Database Integration Methods
+    # =========================================================================
 
-def run_messenger_daemon(check_interval: int = 300):
+    def get_unnotified_matches(self, limit: int = 50) -> List[Dict]:
+        """
+        Query database for matches that haven't been notified yet.
+
+        Args:
+            limit: Maximum number of matches to return
+
+        Returns:
+            List of match dictionaries with player info for notification
+        """
+        try:
+            sql = """
+                SELECT DISTINCT
+                    m.match_id,
+                    m.map,
+                    m.played_at,
+                    pm.steam_id,
+                    pm.name as player_name
+                FROM stats.matches m
+                JOIN stats.player_matches pm ON m.match_id = pm.match_id
+                WHERE m.notified = FALSE
+                ORDER BY m.played_at DESC
+                LIMIT :limit
+            """
+            df = self.db.execute(sql, {'limit': limit})
+            if df is None or len(df) == 0:
+                return []
+            return df.to_dict('records')
+        except Exception as e:
+            logger.error(f"Failed to get unnotified matches: {e}")
+            return []
+
+    def mark_match_notified(self, match_id: str) -> bool:
+        """
+        Mark a match as notified in the database.
+
+        Args:
+            match_id: Match ID to mark as notified
+
+        Returns:
+            True if successfully updated
+        """
+        try:
+            sql = """
+                UPDATE stats.matches
+                SET notified = TRUE
+                WHERE match_id = :match_id
+            """
+            self.db.execute(sql, {'match_id': match_id}, returns=False)
+            logger.info(f"Marked match {match_id} as notified")
+            return True
+        except Exception as e:
+            logger.error(f"Failed to mark match {match_id} as notified: {e}")
+            return False
+
+    def log_notification(
+        self,
+        match_id: str,
+        steam_id: str,
+        status: str,
+        player_name: str = None,
+        map_name: str = None,
+        message_text: str = None,
+        error_message: str = None
+    ) -> bool:
+        """
+        Write a notification attempt to the audit log.
+
+        Args:
+            match_id: Match that triggered notification
+            steam_id: Recipient Steam ID
+            status: Notification status (sent, failed, rate_limited, skipped)
+            player_name: Player name for context
+            map_name: Map name for context
+            message_text: Actual message sent
+            error_message: Error details if failed
+
+        Returns:
+            True if successfully logged
+        """
+        try:
+            sql = """
+                INSERT INTO messaging.notification_log
+                    (match_id, steam_id, player_name, map, message_text, status, error_message, sent_at)
+                VALUES
+                    (:match_id, :steam_id, :player_name, :map, :message_text, :status, :error_message,
+                     CASE WHEN :status = 'sent' THEN NOW() ELSE NULL END)
+            """
+            self.db.execute(sql, {
+                'match_id': match_id,
+                'steam_id': steam_id,
+                'player_name': player_name,
+                'map': map_name,
+                'message_text': message_text,
+                'status': status,
+                'error_message': error_message
+            }, returns=False)
+            return True
+        except Exception as e:
+            logger.error(f"Failed to log notification: {e}")
+            return False
+
+    def get_players_needing_notification(self, match_id: str) -> List[Dict]:
+        """
+        Get players from a match who haven't been notified yet.
+
+        Args:
+            match_id: Match ID
+
+        Returns:
+            List of player dictionaries
+        """
+        try:
+            sql = """
+                SELECT
+                    pm.steam_id,
+                    pm.name as player_name,
+                    m.map
+                FROM stats.player_matches pm
+                JOIN stats.matches m ON pm.match_id = m.match_id
+                WHERE pm.match_id = :match_id
+                  AND NOT EXISTS (
+                      SELECT 1 FROM messaging.notification_log nl
+                      WHERE nl.match_id = pm.match_id
+                        AND nl.steam_id = pm.steam_id
+                        AND nl.status = 'sent'
+                  )
+            """
+            df = self.db.execute(sql, {'match_id': match_id})
+            if df is None or len(df) == 0:
+                return []
+            return df.to_dict('records')
+        except Exception as e:
+            logger.error(f"Failed to get players for match {match_id}: {e}")
+            return []
+
+
+def run_messenger_daemon(check_interval: int = 300, stats_base_url: str = "https://stattrak.com"):
     """
     Run Steam messenger as a daemon process.
     Checks for new analyzed matches and sends notifications.
 
     Args:
         check_interval: Seconds between checks (default: 5 minutes)
+        stats_base_url: Base URL for match stats links
     """
     logger.info("Starting Steam messenger daemon")
 
@@ -345,22 +491,113 @@ def run_messenger_daemon(check_interval: int = 300):
         while True:
             logger.info("Checking for new matches to notify...")
 
-            # TODO: Query database/file store for newly analyzed matches
-            # that haven't been notified yet
+            # Query database for unnotified matches
+            unnotified_matches = messenger.get_unnotified_matches(limit=50)
+            logger.info(f"Found {len(unnotified_matches)} unnotified match records")
 
-            # Example:
-            # new_matches = get_unnotified_matches()
-            # notifications = [
-            #     {
-            #         'steam_id': match['steam_id'],
-            #         'match_id': match['match_id'],
-            #         'map_name': match['map'],
-            #         'stats_url': f"https://stattrak.com/match/{match['match_id']}"
-            #     }
-            #     for match in new_matches
-            # ]
-            # messenger.send_batch_notifications(notifications)
+            # Group by match_id to process each match once
+            matches_by_id = {}
+            for record in unnotified_matches:
+                match_id = record['match_id']
+                if match_id not in matches_by_id:
+                    matches_by_id[match_id] = {
+                        'match_id': match_id,
+                        'map': record.get('map'),
+                        'played_at': record.get('played_at'),
+                        'players': []
+                    }
+                matches_by_id[match_id]['players'].append({
+                    'steam_id': record['steam_id'],
+                    'player_name': record.get('player_name')
+                })
 
+            # Process each match
+            matches_notified = 0
+            for match_id, match_data in matches_by_id.items():
+                map_name = match_data.get('map', 'unknown')
+                stats_url = f"{stats_base_url}/match/{match_id}"
+
+                # Get players who haven't been notified for this match
+                players = messenger.get_players_needing_notification(match_id)
+
+                if not players:
+                    # All players already notified, mark match as done
+                    messenger.mark_match_notified(match_id)
+                    continue
+
+                players_notified = 0
+                for player in players:
+                    steam_id = player['steam_id']
+                    player_name = player.get('player_name', 'Unknown')
+
+                    # Check rate limiting
+                    if not messenger._can_send_message(steam_id):
+                        logger.info(f"Rate limited for {steam_id}, will retry later")
+                        messenger.log_notification(
+                            match_id=match_id,
+                            steam_id=steam_id,
+                            status='rate_limited',
+                            player_name=player_name,
+                            map_name=map_name
+                        )
+                        continue
+
+                    # Check if already sent (file-based history)
+                    if messenger._already_sent(steam_id, match_id):
+                        logger.debug(f"Already notified {steam_id} for {match_id}")
+                        messenger.log_notification(
+                            match_id=match_id,
+                            steam_id=steam_id,
+                            status='skipped',
+                            player_name=player_name,
+                            map_name=map_name,
+                            error_message='Already sent (file history)'
+                        )
+                        continue
+
+                    # Build and send notification
+                    template = messenger.config.get('message_template',
+                        "Your CS2 match on {map} has been analyzed! View your stats at Stattrak.")
+                    message = template.format(
+                        map=map_name,
+                        match_id=match_id,
+                        stats_url=stats_url
+                    )
+
+                    success = messenger.send_message(steam_id, message)
+
+                    if success:
+                        messenger._mark_message_sent(steam_id, match_id)
+                        messenger.log_notification(
+                            match_id=match_id,
+                            steam_id=steam_id,
+                            status='sent',
+                            player_name=player_name,
+                            map_name=map_name,
+                            message_text=message
+                        )
+                        players_notified += 1
+                    else:
+                        messenger.log_notification(
+                            match_id=match_id,
+                            steam_id=steam_id,
+                            status='failed',
+                            player_name=player_name,
+                            map_name=map_name,
+                            message_text=message,
+                            error_message='send_message returned False'
+                        )
+
+                    # Small delay between messages
+                    time.sleep(2)
+
+                # If all players notified, mark match as done
+                remaining = messenger.get_players_needing_notification(match_id)
+                if not remaining:
+                    messenger.mark_match_notified(match_id)
+                    matches_notified += 1
+
+            logger.info(f"Completed notification cycle: {matches_notified} matches fully notified")
             logger.info(f"Sleeping for {check_interval} seconds")
             time.sleep(check_interval)
 
