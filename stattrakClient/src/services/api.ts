@@ -22,6 +22,9 @@ import type {
   FlashLeaderboardEntry,
   MatchSentimentData,
   PlayerCareer,
+  MatchDamageSummary,
+  PlayerDamageStatsAggregate,
+  DamageLeaderboardEntry,
 } from '../types';
 
 // -----------------------------------------------------------------------------
@@ -311,6 +314,52 @@ export async function getEnemyFlashLeaderboard(
 // -----------------------------------------------------------------------------
 export async function getMatchSentimentData(matchId: string): Promise<MatchSentimentData> {
   return makeRequest<MatchSentimentData>(`/api/sentiment/${matchId}`);
+}
+
+// =============================================================================
+// TEAM DAMAGE API FUNCTIONS
+// =============================================================================
+
+// -----------------------------------------------------------------------------
+// getMatchDamageStats - Fetch team damage stats for all players in a match
+// -----------------------------------------------------------------------------
+// Parameters:
+//   matchId: The unique match identifier
+// Returns:
+//   MatchDamageSummary with damage stats for each player
+// -----------------------------------------------------------------------------
+export async function getMatchDamageStats(matchId: string): Promise<MatchDamageSummary> {
+  return makeRequest<MatchDamageSummary>(`/api/damage/match/${matchId}`);
+}
+
+// -----------------------------------------------------------------------------
+// getPlayerDamageStats - Fetch aggregated team damage stats for a player
+// -----------------------------------------------------------------------------
+// Parameters:
+//   steamId: The player's Steam ID
+// Returns:
+//   PlayerDamageStatsAggregate with lifetime team damage statistics
+// -----------------------------------------------------------------------------
+export async function getPlayerDamageStats(steamId: string): Promise<PlayerDamageStatsAggregate> {
+  return makeRequest<PlayerDamageStatsAggregate>(`/api/damage/player/${steamId}`);
+}
+
+// -----------------------------------------------------------------------------
+// getTeamDamageLeaderboard - Fetch team damage hall of shame
+// -----------------------------------------------------------------------------
+// Parameters:
+//   page: Which page of results (default: 1)
+//   limit: Results per page (default: 20)
+// Returns:
+//   Players ranked by most team damage (bad!)
+// -----------------------------------------------------------------------------
+export async function getTeamDamageLeaderboard(
+  page: number = 1,
+  limit: number = 20
+): Promise<{ data: DamageLeaderboardEntry[]; meta?: ApiResponse<DamageLeaderboardEntry[]>['meta'] }> {
+  return makeRequestWithMeta<DamageLeaderboardEntry[]>(
+    `/api/damage/leaderboard/team?page=${page}&limit=${limit}`
+  );
 }
 
 // =============================================================================

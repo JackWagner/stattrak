@@ -237,6 +237,53 @@ export interface MatchFlashSummary {
 }
 
 // -----------------------------------------------------------------------------
+// Team Damage Types
+// -----------------------------------------------------------------------------
+
+// Team damage stats for a single player in a single match
+export interface PlayerMatchDamageStats {
+  matchId: string;
+  steamId: string;
+  name: string;
+  team: string;
+  teamDamage: number;              // damage dealt to teammates
+  teamKills: number;               // teammates killed
+  totalDamage: number;             // total damage dealt
+  damageToEnemies: number;         // damage dealt to enemies
+}
+
+// Aggregated team damage stats for a player
+export interface PlayerDamageStatsAggregate {
+  steamId: string;
+  name: string;
+  totalMatches: number;
+  totalTeamDamage: number;
+  totalTeamKills: number;
+  avgTeamDamagePerMatch: number;
+  avgTeamDamagePerRound: number;
+  teamDamageRate: number;          // % of total damage that was team damage
+}
+
+// Team damage leaderboard entry
+export interface DamageLeaderboardEntry {
+  steamId: string;
+  name: string;
+  totalTeamDamage: number;
+  totalTeamKills: number;
+  matchCount: number;
+  avgTeamDamagePerMatch: number;
+}
+
+// Match damage summary
+export interface MatchDamageSummary {
+  matchId: string;
+  map: string;
+  playedAt: string;
+  players: PlayerMatchDamageStats[];
+  worstTeamDamager: string;        // player with most team damage
+}
+
+// -----------------------------------------------------------------------------
 // Sentiment / Chat Types
 // -----------------------------------------------------------------------------
 

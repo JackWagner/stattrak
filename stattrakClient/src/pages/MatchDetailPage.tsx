@@ -10,8 +10,8 @@
 import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { Layout, Loading, ErrorMessage } from '../components';
-import { getMatch, getMatchRounds } from '../services/api';
-import type { MatchDetails, Round, PlayerMatchStats } from '../types';
+import { getMatch, getMatchRounds, getMatchFlashStats, getMatchDamageStats } from '../services/api';
+import type { MatchDetails, Round, PlayerMatchStats, MatchFlashSummary, MatchDamageSummary } from '../types';
 
 // -----------------------------------------------------------------------------
 // The MatchDetailPage Component
@@ -30,6 +30,8 @@ function MatchDetailPage() {
   // ---------------------------------------------------------------------------
   const [match, setMatch] = useState<MatchDetails | null>(null);
   const [rounds, setRounds] = useState<Round[]>([]);
+  const [flashStats, setFlashStats] = useState<MatchFlashSummary | null>(null);
+  const [damageStats, setDamageStats] = useState<MatchDamageSummary | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -45,8 +47,7 @@ function MatchDetailPage() {
         setLoading(true);
         setError(null);
 
-        // Fetch match details and rounds in parallel
-        // Promise.all waits for both to complete before continuing
+        // Fetch critical match data (match details and rounds) in parallel
         const [matchData, roundsData] = await Promise.all([
           getMatch(matchId),
           getMatchRounds(matchId),
@@ -54,6 +55,24 @@ function MatchDetailPage() {
 
         setMatch(matchData);
         setRounds(roundsData);
+
+        // Fetch optional stats separately - these endpoints may not exist yet
+        // and should not block the main page from loading
+        try {
+          const flashData = await getMatchFlashStats(matchId);
+          setFlashStats(flashData);
+        } catch {
+          // Flash stats endpoint may not exist - that's okay
+          setFlashStats(null);
+        }
+
+        try {
+          const damageData = await getMatchDamageStats(matchId);
+          setDamageStats(damageData);
+        } catch {
+          // Damage stats endpoint may not exist - that's okay
+          setDamageStats(null);
+        }
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Failed to load match');
       } finally {
@@ -229,6 +248,142 @@ function MatchDetailPage() {
           </table>
         </div>
       </section>
+
+      {/* Team Damage Section */}
+      {damageStats && damageStats.players && damageStats.players.length > 0 && (() => {
+        // Helper to normalize team values (could be "CT", "T", "ct", 2, 3, etc.)
+        const normalizeTeam = (team: unknown): string => {
+          const t = String(team).toUpperCase();
+          if (t === 'CT' || t === '3') return 'CT';
+          if (t === 'T' || t === '2') return 'T';
+          return t;
+        };
+
+        const ctDamage = damageStats.players.filter((p) => normalizeTeam(p.team) === 'CT');
+        const tDamage = damageStats.players.filter((p) => normalizeTeam(p.team) === 'T');
+
+        // If team filtering didn't work, show all players in one table
+        const hasTeamData = ctDamage.length > 0 || tDamage.length > 0;
+
+        const renderDamageTable = (players: typeof damageStats.players, teamName: string, teamClass: string) => {
+          if (players.length === 0) return null;
+          return (
+            <div className={`team-scoreboard ${teamClass}-team`}>
+              <h3 className={`team-title ${teamClass}`}>{teamName}</h3>
+              <table className="scoreboard-table">
+                <thead>
+                  <tr>
+                    <th>Player</th>
+                    <th>Team DMG</th>
+                    <th>TKs</th>
+                    <th>Total DMG</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {[...players]
+                    .sort((a, b) => (b.teamDamage ?? 0) - (a.teamDamage ?? 0))
+                    .map((player) => (
+                      <tr key={player.steamId}>
+                        <td>
+                          <Link to={`/players/${player.steamId}`} className="player-link">
+                            {player.name}
+                          </Link>
+                        </td>
+                        <td>{player.teamDamage ?? 0}</td>
+                        <td>{player.teamKills ?? 0}</td>
+                        <td>{player.totalDamage ?? 0}</td>
+                      </tr>
+                    ))}
+                </tbody>
+              </table>
+            </div>
+          );
+        };
+
+        return (
+          <section className="section">
+            <h2>Team Damage</h2>
+            {hasTeamData ? (
+              <>
+                {renderDamageTable(ctDamage, 'Counter-Terrorists', 'ct')}
+                {renderDamageTable(tDamage, 'Terrorists', 't')}
+              </>
+            ) : (
+              renderDamageTable(damageStats.players, 'All Players', 'ct')
+            )}
+          </section>
+        );
+      })()}
+
+      {/* Flash Statistics Section */}
+      {flashStats && flashStats.players && flashStats.players.length > 0 && (() => {
+        // Helper to normalize team values (could be "CT", "T", "ct", 2, 3, etc.)
+        const normalizeTeam = (team: unknown): string => {
+          const t = String(team).toUpperCase();
+          if (t === 'CT' || t === '3') return 'CT';
+          if (t === 'T' || t === '2') return 'T';
+          return t;
+        };
+
+        const ctFlash = flashStats.players.filter((p) => normalizeTeam(p.team) === 'CT');
+        const tFlash = flashStats.players.filter((p) => normalizeTeam(p.team) === 'T');
+
+        // If team filtering didn't work, show all players in one table
+        const hasTeamData = ctFlash.length > 0 || tFlash.length > 0;
+
+        const renderFlashTable = (players: typeof flashStats.players, teamName: string, teamClass: string) => {
+          if (players.length === 0) return null;
+          return (
+            <div className={`team-scoreboard ${teamClass}-team`}>
+              <h3 className={`team-title ${teamClass}`}>{teamName}</h3>
+              <table className="scoreboard-table">
+                <thead>
+                  <tr>
+                    <th>Player</th>
+                    <th>Enemies</th>
+                    <th>Blind</th>
+                    <th>Team</th>
+                    <th>TBlind</th>
+                    <th>Thrown</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {[...players]
+                    .sort((a, b) => (b.enemiesFlashed ?? 0) - (a.enemiesFlashed ?? 0))
+                    .map((player) => (
+                      <tr key={player.steamId}>
+                        <td>
+                          <Link to={`/players/${player.steamId}`} className="player-link">
+                            {player.name}
+                          </Link>
+                        </td>
+                        <td>{player.enemiesFlashed ?? 0}</td>
+                        <td>{(player.enemyBlindDuration ?? 0).toFixed(1)}s</td>
+                        <td>{player.teammatesFlashed ?? 0}</td>
+                        <td>{(player.teamBlindDuration ?? 0).toFixed(1)}s</td>
+                        <td>{player.flashesThrown ?? 0}</td>
+                      </tr>
+                    ))}
+                </tbody>
+              </table>
+            </div>
+          );
+        };
+
+        return (
+          <section className="section">
+            <h2>Flash Statistics</h2>
+            {hasTeamData ? (
+              <>
+                {renderFlashTable(ctFlash, 'Counter-Terrorists', 'ct')}
+                {renderFlashTable(tFlash, 'Terrorists', 't')}
+              </>
+            ) : (
+              renderFlashTable(flashStats.players, 'All Players', 'ct')
+            )}
+          </section>
+        );
+      })()}
 
       {/* Round History Section */}
       {rounds.length > 0 && (
